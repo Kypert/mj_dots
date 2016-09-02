@@ -1,0 +1,7 @@
+set show-changes = yes
+set main-view = \
+  date:default \
+  id:yes \
+  author:display=full,width=0 \
+  commit-title:graph=yes,refs=yes
+color cursor white red bold
