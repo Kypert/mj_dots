@@ -1,0 +1,11 @@
+############
+# Files to ignore in the git repositories
+# Just include this file in the "[core] excludesfile" config
+
+############
+# vim temporary files
+#
+
+*.swp
+*.swo
+*~
