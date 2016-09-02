@@ -12,6 +12,10 @@ alias tmuxstart='tmux $TMUX_ADDITIONAL_OPTS attach -t misc'
 
 EDITOR=vim
 
+# We like the vim ctrl-w kill-word flow!
+stty werase undef
+bind '"\C-w": backward-kill-word'
+
 # ----- prompt fixing ----- 
 parse_git_branch() {
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
