@@ -4,4 +4,6 @@ set main-view = \
   id:yes \
   author:display=full,width=0 \
   commit-title:graph=yes,refs=yes
-color cursor white red bold
+
+source /home/emajons/tig/contrib/chocolate.theme.tigrc
+#source /home/emajons/tig/contrib/vim.tigrc
