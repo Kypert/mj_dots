@@ -1,5 +1,5 @@
 alias vi='vim'
-alias gitme='git log --author="Mathias Jonsson"'
+alias gitme='git log --author="`git config --get user.name`"'
 alias gitclean='git clean -xdff'
 alias gitsub='git submodule update --init'
 alias gits='git status'
