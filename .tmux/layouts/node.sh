@@ -33,7 +33,7 @@ tmux $TMUX_ADDITIONAL_OPTS send-keys -t 3 "sshl" C-j
 tmux $TMUX_ADDITIONAL_OPTS send-keys -t 4 "sshl" C-j
 
 # Prepare the booking
-tmux $TMUX_ADDITIONAL_OPTS send-keys -t 1 "/lab/epg_design_utils/stratos/lockNode -f -s "
+tmux $TMUX_ADDITIONAL_OPTS send-keys -t 1 "/lab/epg_design_utils/stratos/lockNode_v2 -f -s "
 
 if [ "$#" -eq 2 ]; then
     # Prepare the booking, finally with the name
