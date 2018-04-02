@@ -30,7 +30,7 @@
 	whois = !bash -c 'git log -i -1 --pretty=\"format:%an <%ae>
 	whois = \" --author=\"$1\"' -
 [color "branch"]
-	upstream = yellow
+	upstream = magenta
 [core]
 	autocrlf = input
 	editor = vim
@@ -40,5 +40,8 @@
 [merge]
     #tool = kdiff3
     tool = vimdiff
+    conflictStyle = diff3
 [format]
 	pretty = format:%C(white)%ad%C(reset) %x09%C(yellow)%h%C(green)%d%C(reset) %C(white)%s %C(magenta) [%an]%C(reset)
+[diff]
+    renamelimit = 999999
