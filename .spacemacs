@@ -55,12 +55,12 @@ This function should only modify configuration layer settings."
      (version-control :variables
                       version-control-global-margin t
                       version-control-diff-side 'left)
+     (cquery :variables cquery-executable "/home/emajons/cquery/build/release/bin/cquery")
      (c-c++ :variables
             c-c++-default-mode-for-headers 'c++-mode)
      themes-megapack
      go
      python
-     lsp-mode
      )
 
    ;; List of additional packages that will be installed without being
