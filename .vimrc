@@ -7,6 +7,7 @@ nmap <C-N><C-N> :set invnumber<CR>
 
 let mapleader = "\<Space>"
 :nmap <leader>w  :w<CR>
+:nmap <leader>fs :w<CR>
 :nmap <leader>q  :q<CR>
 :nmap <leader>wq :wq<CR>
 
@@ -59,29 +60,6 @@ endif
 
 " Default fold level = Show eveything (more than 200 levels are ridiculous)
 set foldlevel=200
-
-"if has("cscope") && filereadable("/usr/bin/cscope")
-"   set csprg=/usr/bin/cscope
-"   set csto=0
-"   set cst
-"   set nocsverb
-"   " add any database in current directory
-"   if filereadable("cscope.out")
-"      cs add cscope.out
-"   " else add database pointed to by environment
-"   elseif $CSCOPE_DB != ""
-"      cs add $CSCOPE_DB
-"   endif
-"   set csverb
-"endif
-
-" For gtags
-"let GtagsCscope_Auto_Load = 1 
-"let GtagsCscope_Auto_Map = 1 
-"let GtagsCscope_Quiet = 1 
-"set cscopetag
-"source /home/eholmda/packages/global-6.3.4/share/gtags/gtags.vim
-"source /home/emajons/gtags-cscope.mj.vim
 
 if &term=="xterm"
      set t_Co=8
