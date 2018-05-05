@@ -46,12 +46,12 @@ This function should only modify configuration layer settings."
      git
      markdown
      ;; neotree
-     ;; org
-     ;; (shell :variables
-     ;;        shell-default-height 30
-     ;;        shell-default-position 'bottom)
-     ;; spell-checking
-     ;; syntax-checking
+     org
+     (shell :variables
+            shell-default-height 30
+            shell-default-position 'bottom)
+     spell-checking
+     syntax-checking
      (version-control :variables
                       version-control-global-margin t
                       version-control-diff-side 'left)
@@ -202,7 +202,7 @@ It should only modify the values of Spacemacs settings."
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
    dotspacemacs-default-font '("Source Code Pro"
-                               :size 11
+                               :size 13
                                :weight normal
                                :width normal)
 
@@ -491,9 +491,15 @@ before packages are loaded."
 
   (add-hook 'go-mode-hook (lambda() (setq go-tab-width 4)))
   (add-hook 'go-mode-hook (lambda() (setq indent-tabs-mode nil)))
+
+  ;; Ok, really do not want the newline upon semi-colon
   (add-hook 'c++-mode-hook (lambda() (c-toggle-auto-newline -1)))
   (add-hook 'c-mode-hook (lambda() (c-toggle-auto-newline -1)))
   (add-hook 'c-c++-mode-hook (lambda() (c-toggle-auto-newline -1)))
+
+  (require 'git-commit)
+  (add-hook 'git-commit-mode-hook 'turn-on-flyspell)
+  (add-hook 'git-commit-mode-hook (lambda () (setq fill-column 72)))
 
   ;; Let tramp use the PATH from the remote server, then we can find the correct git version for example
   (require 'tramp)
