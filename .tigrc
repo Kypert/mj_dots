@@ -1,9 +1,12 @@
+# Show staged and unstaged changes in the main view
 set show-changes = yes
+
+# Extend the default main-view with the ID as well, so that it is each to just grab a commit
 set main-view = \
   date:default \
   id:yes \
   author:display=full,width=0 \
   commit-title:graph=yes,refs=yes
 
-source /home/emajons/tig/contrib/chocolate.theme.tigrc
-#source /home/emajons/tig/contrib/vim.tigrc
+# Make the curser more visible, this might not work well in bright modes, but keep for now
+color cursor white red bold
