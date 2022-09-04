@@ -5,7 +5,11 @@
 ############
 # vim temporary files
 #
-
 *.swp
 *.swo
 *~
+
+############
+# Somtimes found in repo root to make LSP clients work
+#
+compile_commands.json
