@@ -1,0 +1,48 @@
+# Based on recommended lint config according to: https://revive.run/docs
+
+severity = "warning"
+confidence = 0.8
+errorCode = 0
+warningCode = 0
+
+# Enable all available rules
+enableAllRules = true
+
+# Disabled rules
+[rule.blank-imports]
+    Disabled = true
+[rule.file-header]
+    Disabled = true
+[rule.max-public-structs]
+    Disabled = true
+[rule.line-length-limit]
+    Disabled = true
+[rule.function-length]
+    Disabled = true
+[rule.banned-characters]
+    Disabled = true
+
+# Disable, too many Ip->IP etc
+[rule.var-naming]
+    Disabled = true
+# We know what we are doing... maybe
+[rule.package-comments]
+    Disabled = true
+# We know what we are doing... maybe
+[rule.exported]
+    Disabled = true
+# Tweak the known magic numbers
+[rule.add-constant]
+    arguments = [{allowStrs ="\"\"",allowInts="0,1"}]
+
+# Rule tunning
+[rule.argument-limit]
+    Arguments = [5]
+[rule.cyclomatic]
+    Disabled = true
+    Arguments = [10]
+[rule.cognitive-complexity]
+    Disabled = true
+    Arguments = [7]
+[rule.function-result-limit]
+    Arguments = [3]
