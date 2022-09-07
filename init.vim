@@ -60,6 +60,9 @@ nnoremap <F6> :compiler gcc \| AsyncRun build -c lin.debug up-runtest<CR>
 " Let * stay put! Toggle highlight to see the mark
 :nmap <silent> * :let @/='\<'.expand('<cword>').'\>'<CR>:set hlsearch!<CR>:set hlsearch!<CR>
 
+" Trigger omnifunction
+:nmap <leader>o <c-x><c-o>
+
 " Terminal window switching
 tnoremap <C-w>h <C-\><C-n><C-w>h
 tnoremap <C-w>j <C-\><C-n><C-w>j
@@ -157,8 +160,15 @@ if has("autocmd")
   autocmd FileType c vnoremap gq :LspFormat<CR>
   autocmd FileType cpp vnoremap gq :LspFormat<CR>
   autocmd FileType lua vnoremap gq :LspFormat<CR>
-  autocmd FileType rust vnoremap gq :Format<CR>
+  autocmd FileType rust vnoremap gq :LspFormat<CR>
+  " Poor man formatting... This will have to do for now
+  autocmd FileType rust noremap gq :lua vim.lsp.buf.format()<CR>
+  autocmd FileType go noremap gq :lua vim.lsp.buf.format()<CR>
   autocmd FileType markdown vnoremap <buffer> gq gq<CR>
+
+  autocmd FileType c,cpp setlocal omnifunc=v:lua.vim.lsp.omnifunc
+  autocmd FileType go setlocal omnifunc=v:lua.vim.lsp.omnifunc
+  autocmd FileType rust setlocal omnifunc=v:lua.vim.lsp.omnifunc
 
   " Since I am not a spelling bee
   " [s ]s Navigate
@@ -280,6 +290,9 @@ Plug 'nvim-lua/plenary.nvim'
 Plug 'jose-elias-alvarez/null-ls.nvim' " Need plenary and lspconfig
 
 Plug 'ray-x/lsp_signature.nvim'
+
+Plug 'Glench/Vim-Jinja2-Syntax'
+Plug 'vmware-archive/salt-vim'
 
 call plug#end()
 
@@ -432,5 +445,7 @@ let g:todo_highlight_config = { 'NOTE': {} }
 
 " Add git to the blacklist, similar to diff, when showing a commit in fugitive
 let g:better_whitespace_filetypes_blacklist=['git', 'diff', 'gitcommit', 'unite', 'qf', 'help', 'markdown']
+
+let g:sls_use_jinja_syntax = 1
 
 luafile $HOME/.config/nvim/nvim_init.lua

@@ -83,8 +83,8 @@ local on_attach = function(client, bufnr)
     })
 
     -- Let null-ls handle the formatting
-    client.resolved_capabilities.document_formatting = false
-    client.resolved_capabilities.document_range_formatting = false
+    client.server_capabilities.document_formatting = false
+    client.server_capabilities.document_range_formatting = false
 
     --Enable completion triggered by <c-x><c-o>
     buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
@@ -106,8 +106,8 @@ local on_attach = function(client, bufnr)
     buf_set_keymap('n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
     buf_set_keymap('n', '<leader>gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
     buf_set_keymap('n', '<leader>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
-    buf_set_keymap('n', '[d', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
-    buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
+    buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
+    buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
     -- buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
     -- buf_set_keymap('n', '<leader>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
 end
@@ -140,9 +140,8 @@ lspconfig.ccls.setup {
 }
 
 lspconfig.rust_analyzer.setup({
-    -- Compiled my own, since the release version is linked with a too new glibc for the Git-TS
     cmd = {
-        os.getenv('HOME') .. '/proj/rust-analyzer/target/release/rust-analyzer',
+        'rust-analyzer',
     },
     on_attach = on_attach,
     flags = {
@@ -157,6 +156,12 @@ lspconfig.rust_analyzer.setup({
             cargo = {
                 loadOutDirsFromCheck = true,
             },
+            checkOnSave = {
+                command = "clippy"
+            },
+            diagnostics = {
+                disabled = { "unresolved-import" }
+            },
             procMacro = {
                 enable = true,
             },
@@ -164,9 +169,30 @@ lspconfig.rust_analyzer.setup({
     },
 })
 
+util = require "lspconfig/util"
+
+lspconfig.gopls.setup {
+    cmd = {"gopls", "serve"},
+    on_attach = on_attach,
+    filetypes = {"go", "gomod"},
+    root_dir = util.root_pattern("go.work", "go.mod", ".git"),
+    settings = {
+        gopls = {
+            analyses = {
+                unusedparams = true,
+            },
+            staticcheck = true,
+        },
+    },
+}
+
+lspconfig.salt_ls.setup {
+    on_attach = on_attach,
+}
+
 lspconfig.jedi_language_server.setup {
     cmd = {
-        os.getenv('HOME') .. '/.local/bin/jedi-language-server',
+        'jedi-language-server',
     },
     on_attach = on_attach,
 }
@@ -198,7 +224,7 @@ require('formatter').setup({
     filetype = {
         -- c = { formatter_clang_format },
         -- cpp = { formatter_clang_format },
-        rust = { formatter_rust },
+        -- rust = { formatter_rust },
     },
 })
 
@@ -229,7 +255,13 @@ null_ls.setup({
         null_ls.builtins.formatting.yapf.with({
             command = os.getenv('HOME') .. '/.local/bin/yapf',
         }),
+        null_ls.builtins.formatting.rustfmt.with({
+            extra_args = { '--edition', '2021' },
+        }),
+        null_ls.builtins.formatting.gofmt,
         null_ls.builtins.completion.spell,
+        null_ls.builtins.diagnostics.revive, -- for go linting
+        null_ls.builtins.diagnostics.staticcheck, -- for go linting
         null_ls.builtins.diagnostics.shellcheck.with({ filetypes = { 'sh', 'bash' } }),
     },
 })
