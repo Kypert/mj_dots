@@ -6,6 +6,9 @@ set -x EDITOR $vim_bin
 set -x BAT_THEME Dracula
 set -x GIT_EDITOR $vim_bin
 
+set -g -x PATH $PATH /usr/local/go/bin
+set -g -x PATH $PATH $HOME/go/bin
+
 if not status is-interactive
     return
 end
@@ -24,6 +27,7 @@ function gitme
     git log --author="$me"
 end
 alias cdrr        'cd (git root)'
+alias cdproj      'cd $HOME/proj'
 alias gitclean    'git clean -xdff'
 alias gitsub      'git submodule update --init'
 alias gitsubr     'git submodule update --init --recursive'
@@ -93,3 +97,42 @@ function helpc
 end
 
 set -x MANPAGER "sh -c 'col -bx | bat -l man -p'"
+
+set --global --export SSH_ENV $HOME/.ssh/environment
+
+function start_agent
+    echo "Initializing new SSH agent..."
+    ssh-agent -c | sed 's/^echo/#echo/' > $SSH_ENV
+    echo "succeeded"
+    chmod 600 $SSH_ENV
+    . $SSH_ENV > /dev/null
+    ssh-add
+end
+
+function test_identities
+    ssh-add -l | grep "The agent has no identities" > /dev/null
+    if [ $status -eq 0 ]
+        ssh-add
+        ssh-add ~/.ssh/google_compute_engine
+        if [ $status -eq 2 ]
+            start_agent
+        end
+    end
+end
+
+if [ -n "$SSH_AGENT_PID" ]
+    ps -ef | grep $SSH_AGENT_PID | grep ssh-agent > /dev/null
+    if [ $status -eq 0 ]
+        test_identities
+    end
+else
+    if [ -f $SSH_ENV ]
+        . $SSH_ENV > /dev/null
+    end
+    ps -ef | grep $SSH_AGENT_PID | grep -v grep | grep ssh-agent > /dev/null
+    if [ $status -eq 0 ]
+        test_identities
+    else
+        start_agent
+    end
+end
