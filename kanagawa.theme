@@ -1,0 +1,44 @@
+# Kanagawa Fish shell theme
+# A template was taken and modified from Tokyonight:
+# https://github.com/folke/tokyonight.nvim/blob/main/extras/fish_tokyonight_night.fish
+# set -l foreground DCD7BA
+# set -l selection 2D4F67
+# set -l comment 727169
+# set -l red C34043
+# set -l orange FF9E64
+# set -l yellow C0A36E
+# set -l green 76946A
+# set -l purple 957FB8
+# set -l cyan 7AA89F
+# set -l pink D27E99
+
+# Syntax Highlighting Colors
+fish_color_normal DCD7BA
+fish_color_command 7AA89F
+fish_color_keyword D27E99
+fish_color_quote C0A36E
+fish_color_redirection DCD7BA
+fish_color_end FF9E64
+fish_color_error C34043
+fish_color_param 957FB8
+fish_color_comment 727169
+fish_color_selection --background=2D4F67
+fish_color_search_match --background=2D4F67
+fish_color_operator 76946A
+fish_color_escape D27E99
+fish_color_autosuggestion 727169
+
+# Completion Pager Colors
+fish_pager_color_progress 727169
+fish_pager_color_prefix 7AA89F
+fish_pager_color_completion DCD7BA
+fish_pager_color_description 727169
+
+# Removed the set so that this can be picked up by `fish_config theme list`
+# If running normal fish, one might also want to override `functions
+# prompt_login` to use fish_color_normal, but this is not a problem if running
+# fish in alacritty with its own overrides
+fish_color_status C34043
+fish_color_user DCA561
+fish_color_host C8C093
+fish_color_cwd C8C093
