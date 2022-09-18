@@ -1,3 +1,4 @@
+# vim: set ft=gitconfig:
 ########################
 # Additional git config
 # Just include this to your normal .gitconfig under [include]
@@ -59,15 +60,16 @@
 [diff]
     renamelimit = 999999
     algorithm = histogram
+    colorMoved = default
 [delta]
     light = true
     syntax-theme = GitHub
     navigate = true
     # features = side-by-side line-numbers decorations
-    features = line-numbers
+    features = line-numbers zebra-light
 
     # White diff, even if we use a black terminal
-    zero-style = 'syntax brightwhite'
+    zero-style = 'syntax brightwhite' # This requires a hack in git-delta when diffing in a small terminal (truncating)
     minus-style = 'syntax auto'
     minus-emph-style = 'syntax auto'
     plus-style = 'syntax auto'
@@ -83,3 +85,17 @@
     diffFilter = delta --color-only
 [add.interactive]
     useBuiltin = false
+
+# From dandavison/delta/blob/master/themes.gitconfig
+[delta "zebra-light"]
+    minus-style = syntax "#fbdada"
+    minus-emph-style = syntax "#f6b6b6"
+    plus-style = syntax "#d6ffd6"
+    plus-emph-style = syntax "#adffad"
+    map-styles = \
+       bold purple => syntax "#feecf7", \
+       bold blue => syntax "#e5dff6", \
+       bold cyan => syntax "#d8fdf6", \
+       bold yellow => syntax "#f4ffe0"
+    zero-style = syntax
+    whitespace-error-style = "#aaaaaa"

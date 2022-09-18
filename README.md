@@ -11,7 +11,7 @@ For some files, you just want to source or extend from the original dot file.
 
 Add something like this:
 
-    [includeIf "gitdir:~/proj/work"]
+    [includeIf "gitdir:~/proj/work/"]
         path = ~/.gitconfig_work
 
 That includes something like this:
