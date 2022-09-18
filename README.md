@@ -21,3 +21,16 @@ That includes something like this:
         email = some@email.com
     [gerrit]
         createChangeId = false
+
+# Docker
+
+Install docker engine according to docker.com.
+Perform the post-installations, to be able to manage docker as a non-root user.
+
+Docker login to various environments:
+
+    docker login -u "$USER" somehost.com
+
+For gcloud, after gcloud init:
+
+    gcloud auth configure-docker
