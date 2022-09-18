@@ -230,7 +230,7 @@ require('formatter').setup({
 
 local null_ls = require("null-ls")
 null_ls.setup({
-    cmd = {os.getenv('HOME') .. '/neovim/build/bin/nvim'},
+    cmd = {os.getenv('HOME') .. '/proj/neovim/build/bin/nvim'},
     on_attach = function()
         vim.cmd([[ command! -nargs=0 -range LspFormat execute 'lua vim.lsp.buf.range_formatting()' ]])
 
@@ -247,7 +247,7 @@ null_ls.setup({
     sources = {
         null_ls.builtins.formatting.stylua.with({
             extra_args = { '--indent-type', 'Spaces', '--quote-style', 'AutoPreferSingle' },
-            command = os.getenv('HOME') .. '/.cargo/bin/stylua',
+            command = 'stylua',
         }),
         null_ls.builtins.formatting.clang_format.with({
             command = 'clang-format',
@@ -259,10 +259,12 @@ null_ls.setup({
             extra_args = { '--edition', '2021' },
         }),
         null_ls.builtins.formatting.gofmt,
-        null_ls.builtins.completion.spell,
         null_ls.builtins.diagnostics.revive, -- for go linting
         null_ls.builtins.diagnostics.staticcheck, -- for go linting
         null_ls.builtins.diagnostics.shellcheck.with({ filetypes = { 'sh', 'bash' } }),
+
+        -- This makes it so that formatexpr is set in ft=gitcommit and we can't run 'gq'
+        -- null_ls.builtins.completion.spell,
     },
 })
 
@@ -274,16 +276,24 @@ require('kanagawa').setup({
     specialException = false,
     transparent = false,
 
-    -- This needs to be readjusted for bg=light
     overrides = {
-        NormalFloat = { bg = '#223249' }, -- waveBlue1
-        Visual = { bg = '#2D4F67' }, -- waveBlue2
-        Search = { bg = '#938AA9' }, -- springViolet1
         NormalNC = { bg = '#181820' }, -- As suggested via rebelot/kanagawa.nvim/issues/17
     },
 })
 
-vim.cmd("colorscheme kanagawa")
+vim.cmd('colorscheme kanagawa')
+vim.api.nvim_create_user_command('GoLight', function(opts)
+    vim.cmd('set background=light')
+    vim.cmd("let $BAT_THEME='gruvbox-light'")
+    require('kanagawa').setup({ overrides = { NormalNC = { bg = '#C8C093' } } })
+    vim.cmd('colorscheme kanagawa')
+end, {})
+vim.api.nvim_create_user_command('GoDark', function(opts)
+    vim.cmd('set background=dark')
+    vim.cmd("let $BAT_THEME='gruvbox-dark'")
+    require('kanagawa').setup({ overrides = { NormalNC = { bg = '#181820' } } })
+    vim.cmd('colorscheme kanagawa')
+end, {})
 
 require'lualine'.setup()
 
@@ -294,3 +304,5 @@ require('smoothcursor').setup({
         head = { cursor = "", texthl = "SmoothCursor", linehl = nil },
     },
 })
+
+vim.api.nvim_set_option("clipboard","unnamed")

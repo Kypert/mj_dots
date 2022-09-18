@@ -2,6 +2,9 @@ if v:lang =~ "utf8$" || v:lang =~ "UTF-8$"
    set fileencodings=utf-8,latin1
 endif
 
+set rtp+=~/.fzf
+set rtp+=~/proj/neovim/build/runtime " Since I use neovim from build directly, gain (all) syntax for vim for example
+
 set list listchars=tab:>\ ,trail:-,eol:$
 set nolist
 
@@ -386,9 +389,6 @@ let g:easy_align_delimiters['d'] = {
             \ 'pattern': ' \ze\S\+\s*[;=]',
             \ 'left_margin': 0, 'right_margin': 0
             \}
-
-set rtp+=~/.fzf
-set rtp+=~/neovim/build/runtime " Since I use neovim from build directly, gain (all) syntax for vim for example
 
 " Make RG able to take args like in the shell
 " junegunn/fzf.vim/issues/419
