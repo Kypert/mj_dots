@@ -261,6 +261,7 @@ Plug 'airblade/vim-gitgutter'
 Plug 'scrooloose/vim-slumlord'        " plantuml
 Plug 'aklt/plantuml-syntax'           " plantuml
 Plug 'nathanalderson/yang.vim'
+Plug 'gen740/smoothcursor.nvim'
 
 Plug 'Kypert/vim-clang-format', { 'branch': 'fix/issues/98' }
 " Plug 'mhartington/formatter.nvim'

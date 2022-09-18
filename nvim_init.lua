@@ -286,3 +286,11 @@ require('kanagawa').setup({
 vim.cmd("colorscheme kanagawa")
 
 require'lualine'.setup()
+
+require('smoothcursor').setup({
+    cursor = '',
+    fancy = {
+        enable = true,
+        head = { cursor = "", texthl = "SmoothCursor", linehl = nil },
+    },
+})
