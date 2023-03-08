@@ -27,6 +27,7 @@ endfunction
 " Toggle line numbers
 nmap <C-N><C-N> :set invnumber<CR>:set relativenumber!<CR>:call ToggleSignColumn()<CR>:call ToggleCC()<CR>
 let b:signcolumn_on=1
+set signcolumn=yes
 
 let mapleader = "\<Space>"
 :nmap <leader>qq :q<CR>
@@ -39,7 +40,6 @@ let mapleader = "\<Space>"
 :nmap <leader>fb :Vexplore<CR>
 :nmap <leader>fa :call CurtineIncSw()<CR>
 :nmap <leader>gs :Git<CR>
-:nmap <leader>hr :GitGutterUndoHunk<CR>
 :nmap <leader>bb :Buffers<CR>
 :nmap <leader>bd :Bdelete<CR>
 :nmap <leader>bD :Bwipeout<CR>
@@ -152,7 +152,7 @@ if has("autocmd")
 
   " vim.vim ft allows for tw=78, extend that to 120. Only affects comments as per 'formatoptions'
   autocmd BufRead,BufNewFile *.vim setlocal tw=120
-  autocmd BufRead,BufNewFile *.md setlocal tw=80
+  autocmd BufRead,BufNewFile *.md setlocal tw=120
 
   " Set the cursor to first line for git commit messages
   autocmd FileType gitcommit au! BufEnter COMMIT_EDITMSG call setpos('.', [0, 1, 1, 0])
@@ -178,7 +178,7 @@ if has("autocmd")
   " zg Add word to list
   " z= Spelling corrections, 1z= for fist suggestion
   " CTRL-X s to fix in insert-mode
-  autocmd FileType gitcommit,text,cpp,c,h,vim,plantuml,yang,ttcn,yaml,python,cmake,markdown,fugitive,unix,help,sh,cfg,csh,lua setlocal spell spelllang=en_us
+  autocmd FileType gitcommit,text,cpp,c,h,vim,plantuml,yang,ttcn,yaml,python,cmake,markdown,fugitive,unix,help,sh,cfg,csh,lua,go,make setlocal spell spelllang=en_us
 
   augroup highlight_yank
     autocmd!
@@ -186,6 +186,8 @@ if has("autocmd")
   augroup END
 
 endif
+
+set mouse=
 
 " Default fold level = Show everything
 set foldlevel=200
@@ -239,6 +241,15 @@ call plug#begin('~/.vim/plugged')
 Plug 'neovim/nvim-lspconfig'
 Plug 'ojroques/nvim-lspfuzzy'
 
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-cmdline'
+Plug 'mtoohey31/cmp-fish'
+Plug 'hrsh7th/cmp-nvim-lua'
+Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
+Plug 'hrsh7th/nvim-cmp'
+
 Plug 'tpope/vim-sensible'             " Better than nocompat
 Plug 'tpope/vim-commentary'           " Comment stuff with gc
 Plug 'tpope/vim-speeddating'          " Ctrl-A / Ctrl-X more things
@@ -248,10 +259,9 @@ Plug 'tpope/vim-fugitive'             " Need git
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-abolish'              " Super-Charged subst and search via :Subvert
+Plug 'tpope/vim-eunuch'               " For the shebang filetype redetect and chmod+x
+Plug 'tpope/vim-sleuth'               " For replacing need for tab settings
 Plug 'ntpeters/vim-better-whitespace' " StripWhitespace for trailing spaces
-Plug 'gruvbox-community/gruvbox'      " colorsheme to use (greatest)
-Plug 'junegunn/seoul256.vim'          " colorsheme to use (great) (NOTE: Needs to override better-whitespace::WhitespaceInit())
-Plug 'NLKNguyen/papercolor-theme'     " colorsheme to use?
 Plug 'rebelot/kanagawa.nvim'          " colorsheme to use!
 Plug 'junegunn/vim-easy-align'        " Align everything
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -260,7 +270,6 @@ Plug 'junegunn/vim-peekaboo'          " Show the content of the registers
 Plug 'nvim-lualine/lualine.nvim'      " The status line
 Plug 'tmsvg/pear-tree'                " Replacing jiangmiao/auto-pairs
 Plug 'moll/vim-bbye'                  " Bdelete and Bwipeout
-Plug 'airblade/vim-gitgutter'
 Plug 'scrooloose/vim-slumlord'        " plantuml
 Plug 'aklt/plantuml-syntax'           " plantuml
 Plug 'nathanalderson/yang.vim'
@@ -293,20 +302,39 @@ Plug 'nvim-lua/plenary.nvim'
 
 Plug 'jose-elias-alvarez/null-ls.nvim' " Need plenary and lspconfig
 
-Plug 'ray-x/lsp_signature.nvim'
-
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'vmware-archive/salt-vim'
 
+Plug 'norcalli/nvim-colorizer.lua'
+
+Plug 'https://git.sr.ht/~whynothugo/lsp_lines.nvim'
+
+Plug 'sindrets/diffview.nvim' " Need plenary
+
+Plug 'vinnymeller/swagger-preview.nvim'
+Plug 'JManch/sunset.nvim'
+
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
+Plug 'rafamadriz/friendly-snippets'
+
+Plug 'lewis6991/gitsigns.nvim'
+Plug 'shortcuts/no-neck-pain.nvim'
+
 call plug#end()
+
+" Consider nyngwang/murmur.lua
+" In nvim 0.9, consider try splitkeep
+
+" NOTE: Too much happening, revisit later once it has stabilize
+" Plug 'shortcuts/no-neck-pain.nvim'
+
+" NOTE: Somehow hides text when navigating the window layout
+" Plug 'nvim-zh/colorful-winsep.nvim'
 
 " NOTE: Treesitter not ready for 10k files yet.
 " Plug 'haorenW1025/completion-nvim'
 " Plug 'vigoux/completion-treesitter'
-
-" NOTE: Not better compared to gitgutter as of now
-" Plug 'nvim-lua/plenary.nvim'
-" Plug 'lewis6991/gitsigns.nvim', { 'branch': 'main' }  " Requires nvim-lua/plenary.nvim
 
 set wildoptions+=pum
 set pumblend=20
@@ -317,53 +345,6 @@ set termguicolors
 " 2) Status line
 " 3) Terminal scheme
 " 4) git diff (delta/bat)
-
-" let g:seoul256_background = 233
-" let g:seoul256_light_background = 252
-" colorscheme seoul256
-
-" colorscheme gruvbox
-" set background=light
-" let $BAT_THEME="gruvbox-light"
-
-" Transparency, set after colorscheme
-" hi Normal guibg=NONE ctermbg=NONE
-
-" Set in lua
-" colorscheme kanagawa
-
-" From gruvbox-community/gruvbox/issues/15, but removed bg and bg+ for transparent
-" let g:fzf_colors = {
-"       \ 'fg':      ['fg', 'GruvboxFg1'],
-"       \ 'hl':      ['fg', 'GruvboxYellow'],
-"       \ 'fg+':     ['fg', 'GruvboxFg1'],
-"       \ 'hl+':     ['fg', 'GruvboxYellow'],
-"       \ 'info':    ['fg', 'GruvboxBlue'],
-"       \ 'prompt':  ['fg', 'GruvboxFg4'],
-"       \ 'pointer': ['fg', 'GruvboxBlue'],
-"       \ 'marker':  ['fg', 'GruvboxOrange'],
-"       \ 'spinner': ['fg', 'GruvboxYellow'],
-"       \ 'header':  ['fg', 'GruvboxBg3']
-"       \ }
-
-" set background=light
-" let $BAT_THEME="base16-papercolor-light"
-" colorscheme PaperColor
-
-" let g:fzf_colors =
-" \ { 'fg':      ['fg', 'Normal'],
-"   \ 'bg':      ['bg', 'Normal'],
-"   \ 'hl':      ['fg', 'Comment'],
-"   \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-"   \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-"   \ 'hl+':     ['fg', 'Statement'],
-"   \ 'info':    ['fg', 'PreProc'],
-"   \ 'border':  ['fg', 'Ignore'],
-"   \ 'prompt':  ['fg', 'Conditional'],
-"   \ 'pointer': ['fg', 'Exception'],
-"   \ 'marker':  ['fg', 'Keyword'],
-"   \ 'spinner': ['fg', 'Label'],
-"   \ 'header':  ['fg', 'Comment'] }
 
 " Normal color in popup window with 'CursorLine'
 hi link gitmessengerPopupNormal CursorLine
@@ -411,17 +392,16 @@ let g:fzf_preview_window = 'right:50%'
 let g:ale_sign_column_always = 1
 " Slow to start up C with below linters?
 " let g:ale_linters = { 'c': ['clang', 'clangd', 'clangtidy', 'cppcheck', 'flawfinder', 'gcc'], 'python' : ['pylint'] }
-let g:ale_linters = { 'python' : ['pylint', 'flake8', 'mypy'] }
+let g:ale_linters = { 'python' : ['pylint', 'flake8', 'mypy'], 'sls' : ['salt-lint'] }
 let g:ale_linters_explicit = 1
-let g:ale_python_pylint_options = '--max-line-length=120 --function-rgx="[a-z_][a-z0-9_]{2,120}$" --method-rgx="[a-z_][a-z0-9_]{2,120}$"'
+" Disable W1202 logging-format-interpolation
+let g:ale_python_pylint_options = '--max-line-length=120 --disable=logging-format-interpolation --disable=logging-fstring-interpolation --disable=missing-function-docstring --function-rgx="[a-z_][a-z0-9_]{2,120}$" --method-rgx="[a-z_][a-z0-9_]{2,120}$"'
 let g:ale_python_flake8_options = '--max-line-length=120'
 " Set to never, in order to only lint on save, which is default
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_set_loclist = 1
 let g:ale_set_quickfix = 0
-
-let g:gitgutter_preview_win_floating = 1
-let g:gitgutter_diff_args = '--diff-algorithm=histogram'
+let g:ale_linter_aliases = { 'sls': 'salt' }
 
 :packadd termdebug
 let termdebugger = "gdb"
@@ -445,8 +425,19 @@ let g:asyncrun_open = 8
 let g:todo_highlight_config = { 'NOTE': {} }
 
 " Add git to the blacklist, similar to diff, when showing a commit in fugitive
-let g:better_whitespace_filetypes_blacklist=['git', 'diff', 'gitcommit', 'unite', 'qf', 'help', 'markdown']
+let g:better_whitespace_filetypes_blacklist=['git', 'diff', 'gitcommit', 'unite', 'qf', 'help',] " 'markdown']
 
 let g:sls_use_jinja_syntax = 1
+
+" nvim-cmp says to include this
+set completeopt=menu,menuone,noselect
+
+" press <Tab> to expand or jump in a snippet. These can also be mapped separately
+" via <Plug>luasnip-expand-snippet and <Plug>luasnip-jump-next.
+imap <silent><expr> <Tab> luasnip#expand_or_jumpable() ? '<Plug>luasnip-expand-or-jump' : '<Tab>'
+" -1 for jumping backwards.
+inoremap <silent> <S-Tab> <cmd>lua require'luasnip'.jump(-1)<Cr>
+snoremap <silent> <Tab> <cmd>lua require('luasnip').jump(1)<Cr>
+snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
 
 luafile $HOME/.config/nvim/nvim_init.lua
