@@ -1,21 +1,28 @@
-set --local vim_bin /home/$USER/neovim/build/bin/nvim
-set --local rg_bin /home/$USER/proj/ripgrep/target/release/rg
+set --local vim_bin /home/$USER/proj/neovim/build/bin/nvim
 set --local alacritty_bin /home/$USER/proj/alacritty/target/release/alacritty
 
+set --global BG_COLOR_FILE /tmp/term_bg_color
+if not test -e $BG_COLOR_FILE
+    echo "dark" > $BG_COLOR_FILE
+end
+
 set -x EDITOR $vim_bin
-set -x BAT_THEME Dracula
+set -g -x BAT_THEME gruvbox-(cat $BG_COLOR_FILE)
 set -x GIT_EDITOR $vim_bin
+set -x WORK_DIR $HOME/proj/work
 
 set -g -x PATH $PATH /usr/local/go/bin
 set -g -x PATH $PATH $HOME/go/bin
+set -g -x PATH $PATH $HOME/node_modules/.bin
 
 if not status is-interactive
     return
 end
 
+set --universal fish_greeting "🐟🐟🐟"
+
 # Commands to run in interactive sessions can go here
 fish_config theme choose kanagawa
-alias rg (echo $rg_bin)
 alias nvim (echo $vim_bin)
 alias vi (echo $vim_bin)
 alias vim (echo $vim_bin)
@@ -28,13 +35,17 @@ function gitme
 end
 alias cdrr        'cd (git root)'
 alias cdproj      'cd $HOME/proj'
+alias cdwork      'cd $HOME/proj/work'
 alias gitclean    'git clean -xdff'
 alias gitsub      'git submodule update --init'
 alias gitsubr     'git submodule update --init --recursive'
 alias gitsubclean 'git submodule foreach --recursive git clean -ffdx'
 alias gits        'git status'
 alias gitb        'git branch -vv'
-alias gitp        'git push origin HEAD:refs/for/master'
+alias gitpg       'git push origin HEAD:refs/for/master'
+alias gitp        'git push origin HEAD:(git branch --show-current)'
+alias gitpf       'git push -f origin HEAD:(git branch --show-current)'
+alias gitw        'git worktree list'
 
 function gitlog_without_scm
     # Log of two commitish, excluding up/VERSION_PREFIX changes
@@ -46,13 +57,24 @@ function tigdiff
     tig $argv[1] -- $argv[2] ':^up/VERSION_PREFIX'
 end
 
+function gitw_add
+    # Create a new worktree with given branch name
+    # E.g: gitw_add fix-it-based-on-current-commit
+    # E.g: gitw_add fix-it-tracking-master origin/master
+    set --local branch $argv[1]
+    set --local dir ../(basename (git root))
+    echo $branch
+    echo $dir
+    git worktree add -b $branch $dir-$branch $argv[2..-1]
+end
+
 function fix_sp_trailing
     # Remove empty lines and then \r from given file, support_package files
     sed -i '/^$/d' $argv[1] && sed -i 's/\r$//' $argv[1]
 end
 
 alias tmuxfire  '~/.tmux/sessions/fireup.sh'
-alias tmuxstart 'tmux $TMUX_ADDITIONAL_OPTS attach -t main'
+alias tmuxstart 'tmux $TMUX_ADDITIONAL_OPTS attach'
 alias tmuxtoss  'tmux $TMUX_ADDITIONAL_OPTS kill-server'
 
 alias sshh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeychecking=no'
@@ -64,10 +86,13 @@ alias dockerps      'docker ps | sed 1d | fzf-tmux | awk \'{print $1}\''
 alias setkubecfg    'set --global --export KUBECONFIG'
 alias kc            'kubectl --insecure-skip-tls-verify'
 
+alias dockerkillall 'docker kill (docker ps | tail -n +2 | cut -d" " -f 1)'
+alias dockerrmall   'docker rm (docker ps -a | tail -n +2 | cut -d" " -f 1)'
+
 alias pick_compile_commands 'set --global --export COMPILE_COMMANDS_DIR (find . | grep compile_commands.json | fzf-tmux | xargs dirname)'
 
 function dockerlocal
-    set --local options 'h/help' 'i/image=' 'e/entrypoint='
+    set --local options 'h/help' 'i/image=' 'e/entrypoint=' 'r/root'
     argparse $options -- $argv
     if set --query _flag_help
         printf "Usage: %s [OPTIONS]\n\n" (status function)
@@ -79,7 +104,14 @@ function dockerlocal
     set --query _flag_entrypoint; or set --local _flag_entrypoint 'bash'
     set --query _flag_image; or set --local _flag_image (dockerimg)
 
-    docker run -it --env USER=$USER --env WS_ROOT=$WS_ROOT --rm --user (id -u):(id -g) -v $PWD:$PWD --workdir $PWD \
+    set --local user --privileged
+    if set --query _flag_root
+    else
+        set user --env USER=$USER --user (id -u)":"(id -g)
+    end
+
+    # Multiple --env seems to make --rm to not function
+    docker run -it $user --rm -v $PWD:$PWD --workdir $PWD \
         --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --entrypoint=$_flag_entrypoint $_flag_image
 end
 
@@ -135,4 +167,34 @@ else
     else
         start_agent
     end
+end
+
+function set_bg_mode
+    # Create a very special file to denote the wanted bg color
+    echo $argv[1] > $BG_COLOR_FILE
+    set --global --export BAT_THEME gruvbox-$argv[1]
+    sed -i --follow-symlinks "s/\(colors: \*\).*/\1$argv[1]/" ~/.alacritty.yml
+    if test "$argv[1]" = "light"
+        sed -i --follow-symlinks 's/ zebra-dark/ zebra-light/' ~/.gitconfig.user
+    else
+        sed -i --follow-symlinks 's/ zebra-light/ zebra-dark/' ~/.gitconfig.user
+    end
+end
+alias go_dark 'set_bg_mode dark'
+alias go_light 'set_bg_mode light'
+
+function run_many
+    # Run X iterations, stop upon failure
+    for x in (seq $argv[1])
+        echo "=== $(date) ITERATION $x ==="
+        eval "$argv[2..-1]"
+        if test $status != 0
+            break
+        end
+    end
+end
+
+function gitallinone
+    git fetch --tags --force --prune
+    git pull --rebase -q
 end
