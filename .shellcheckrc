@@ -1,0 +1,2 @@
+# Use find instead of ls to better handle non-alphanumeric filenames.
+disable=SC2012
