@@ -881,38 +881,80 @@ font:
   # Highlight window damage information.
   #highlight_damage: false
 
+# Set this to true if we want to be able to see the selected option in bios (adjust bright/white)
+draw_bold_text_with_bright_colors: false
+# draw_bold_text_with_bright_colors: true
+
 # Kanagawa Alacritty Colors
-colors:
-  primary:
-    background: '0x1f1f28'
-    foreground: '0xdcd7ba'
+schemes:
+  colors: &dark
+    primary:
+      background: '#1f1f28'
+      foreground: '#dcd7ba'
 
-  normal:
-    black:   '0x090618'
-    red:     '0xc34043'
-    green:   '0x76946a'
-    yellow:  '0xc0a36e'
-    blue:    '0x7e9cd8'
-    magenta: '0x957fb8'
-    cyan:    '0x6a9589'
-    white:   '0xc8c093'
+    normal:
+      black:   '#090618'
+      red:     '#c34043'
+      green:   '#76946a'
+      yellow:  '#c0a36e'
+      blue:    '#7e9cd8'
+      magenta: '#957fb8'
+      cyan:    '#6a9589'
+      white:   '#c8c093'
 
-  bright:
-    black:   '0x727169'
-    red:     '0xe82424'
-    green:   '0x98bb6c'
-    yellow:  '0xe6c384'
-    blue:    '0x7fb4ca'
-    magenta: '0x938aa9'
-    cyan:    '0x7aa89f'
-    white:   '0xdcd7ba'
+    bright:
+      black:   '#727169'
+      red:     '#c82424' # Was '#e82424'
+      green:   '#88ab6c' # Was '#98bb6c'
+      yellow:  '#e6c384'
+      blue:    '#7fb4ca'
+      magenta: '#938aa9'
+      cyan:    '#7aa89f'
+      white:   '#DCD7BA' # Was #dcd7ba
 
-  selection:
-    background: '0x2d4f67'
-    foreground: '0xc8c093'
+    selection:
+      background: '#2d4f67'
+      foreground: '#c8c093'
 
-  indexed_colors:
-    - { index: 16, color: '0xffa066' }
-    - { index: 17, color: '0xff5d62' }
+    indexed_colors:
+      - { index: 16, color: '#ffa066' }
+      - { index: 17, color: '#ff5d62' }
 
-  transparent_background_colors: true
+    transparent_background_colors: true
+
+  colors: &light
+    primary:
+      background: '#f6f0c8'
+      foreground: '#545464'
+
+    normal:
+      black:   '#cac4a4'
+      red:     '#c82424' # Was '#e82424'
+      green:   '#6f894e'
+      yellow:  '#836f4a'
+      blue:    '#587bb9'
+      magenta: '#7b5fa3'
+      cyan:    '#5f847d'
+      white:   '#545464'
+
+    bright:
+      black:   '#8a8980'
+      red:     '#d7474b'
+      green:   '#6e915f'
+      yellow:  '#947945'
+      blue:    '#7E9CD8'
+      magenta: '#957FB8'
+      cyan:    '#7AA89F'
+      white:   '#43436c'
+
+    selection:
+      background: '#c9cbd1'
+      foreground: '#43436c'
+
+    indexed_colors:
+      - { index: 16, color: '#cc6d00' }
+      - { index: 17, color: '#c84053' }
+
+    transparent_background_colors: true
+
+colors: *dark
