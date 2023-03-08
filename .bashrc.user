@@ -1,14 +1,15 @@
+# shellcheck shell=bash
+# vim: set filetype=bash
 alias alacritty='$HOME/proj/alacritty/target/release/alacritty'
 alias gitb='git branch -vv'
 alias gitclean='git clean -xdff'
 alias gitme='git log --author="`git config --get user.name`"'
 alias gits='git status'
 alias gitsub='git submodule update --init'
-alias rg='$HOME/proj/ripgrep/target/release/rg'
 alias scpp='scp -o UserKnownHostsFile=/dev/null -o StrictHostKeychecking=no'
 alias sshh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeychecking=no'
-alias vi='/$HOME/neovim/build/bin/nvim'
-alias vim='$HOME/neovim/build/bin/nvim'
+alias vi='$HOME/proj/neovim/build/bin/nvim'
+alias vim='$HOME/proj/neovim/build/bin/nvim'
 
 # Green cursor
 echo -ne "\e]12;green\a"
@@ -17,8 +18,14 @@ echo -ne "\e]12;green\a"
 stty werase undef
 bind '"\C-w": backward-kill-word'
 
-export EDITOR=vim
-export PATH=$PATH:~/.local/bin
+export EDITOR=$HOME/proj/neovim/build/bin/nvim
+export PATH=~/.local/bin:$PATH
 export TERM=xterm-256color
-export VIMRUNTIME=$HOME/neovim/runtime/
+export VIMRUNTIME=$HOME/proj/neovim/runtime/
 export XDG_DATA_HOME=$HOME/.local/share
+
+if [ -z "$STAY_BASH" ]; then
+    # Enter fish if STAY_BASH is empty
+    fish
+    exit # As we exit fish, also exit bash
+fi
