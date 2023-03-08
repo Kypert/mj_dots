@@ -33,7 +33,11 @@ enableAllRules = true
     Disabled = true
 # Tweak the known magic numbers
 [rule.add-constant]
+    Disabled = true
     arguments = [{allowStrs ="\"\"",allowInts="0,1"}]
+# I allow it
+[rule.nested-structs]
+    Disabled = true
 
 # Rule tunning
 [rule.argument-limit]
