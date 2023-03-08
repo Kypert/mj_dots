@@ -16,7 +16,5 @@ fi
 
 tmux splitw -h -p 50
 
-tmux send-keys -t 1 "fish" C-j
 tmux send-keys -t 1 "cd $2" C-j
-tmux send-keys -t 2 "fish" C-j
 tmux send-keys -t 2 "cd $2" C-j
