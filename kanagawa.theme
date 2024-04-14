@@ -13,6 +13,12 @@
 # set -l cyan 7AA89F cyan
 # set -l pink D27E99 brmagenta
 
+# See colors via colorize
+# :g/^fish_.*color/s/=/=#
+# :g/^fish_.*color/s/ / #
+# Restore
+# :g/^fish_.*color/s/#//g
+
 # Syntax Highlighting Colors
 fish_color_normal DCD7BA
 fish_color_command 7AA89F
@@ -32,7 +38,7 @@ fish_color_autosuggestion 727169
 # Completion Pager Colors
 fish_pager_color_progress 727169
 fish_pager_color_prefix 7AA89F
-fish_pager_color_completion DCD7BA
+fish_pager_color_completion 727169
 fish_pager_color_description 727169
 
 # Removed the set so that this can be picked up by `fish_config theme list`
@@ -41,5 +47,6 @@ fish_pager_color_description 727169
 # fish in alacritty with its own overrides
 fish_color_status C34043
 fish_color_user DCA561
-fish_color_host C8C093
-fish_color_cwd C8C093
+fish_color_host 7E9CD8
+# Better to use normal color for this, which works in both dark and light theme
+# fish_color_cwd #727169
