@@ -14,22 +14,245 @@ function dump(o)
     end
 end
 
+-- {{{ Globals and general options
+-- Use preview globally, like in Buffers, Files. RG uses '?' to toggle it, since the search itself can be long
+vim.g.fzf_preview_window = 'right:50%'
+
+-- Make RG able to take args like in the shell
+-- junegunn/fzf.vim/issues/419
+vim.cmd([[command! -bang -nargs=* RG
+  \ call fzf#vim#grep(
+  \     "rg --column --line-number --no-heading --color=always --smart-case --with-filename --sort path " . <q-args>, 1,
+  \     <bang>0 ? fzf#vim#with_preview("up:60%")
+  \             : fzf#vim#with_preview("right:50%:hidden", "?"),
+  \     <bang>0)
+]])
+
+-- GG as in Git grep, do not forget: CTRL-R CTRL-W for current word, same as CTRL-R=expand("<cword>")
+vim.cmd([[command! -bang -nargs=* GG
+  \ call fzf#vim#grep(
+  \   'git grep --line-number -- ' . <q-args>, 0,
+  \   fzf#vim#with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
+]])
+
+vim.g.sls_use_jinja_syntax = 1
+
+-- Add git to the blacklist, similar to diff, when showing a commit in fugitive
+vim.g.better_whitespace_filetypes_blacklist = {
+    'git', 'diff', 'gitcommit', 'unite', 'qf', 'help', -- 'markdown'
+}
+
+-- Enable undo persistence (remember to clean it manually from time to time!)
+vim.o.undofile = true
+vim.o.undodir = vim.fn.stdpath("state") .. "/undo"
+vim.fn.mkdir(vim.o.undodir, "p")
+
+vim.o.pumblend = 20
+vim.o.termguicolors = true
+vim.o.shell = 'fish'
+vim.o.number = true
+vim.o.signcolumn = 'yes'
+vim.o.showmode = false -- Already handled by the statusline
+vim.o.cursorline = true
+vim.o.relativenumber = true
+vim.o.colorcolumn = '121'
+vim.o.inccommand = 'split' -- Live preview of subs
+vim.o.mouse = ''
+vim.o.splitbelow = true
+vim.o.splitright = true
+-- vim.o.smoothscroll = true -- Set in nvim 0.10.0?
+vim.o.updatetime = 100 -- Default is 4s, but reduce it to make things more real time, like git gutter
+
+vim.o.expandtab = true
+vim.o.tabstop = 4
+vim.o.shiftwidth = 4
+vim.o.shiftround = true -- When at 3 spaces, and I hit > ... Go to 4, not 5
+
+vim.o.clipboard = "unnamedplus,unnamed"
+
+-- Since I use neovim from build directly, gain (all) syntax for vim for example
+vim.o.rtp = vim.o.rtp .. ",~/proj/neovim/build/runtime"
+
+vim.opt.completeopt = { 'menu', 'menuone', 'noselect' } -- nvim-cmp says to include this
+
+
+-- OSC 52, in neovim nightly, but maybe slow?
+-- vim.g.clipboard = {
+-- 	name = 'OSC 52',
+-- 	copy = {
+-- 		['+'] = require('vim.ui.clipboard.osc52').copy,
+-- 		['*'] = require('vim.ui.clipboard.osc52').copy,
+-- 	},
+-- 	paste = {
+-- 		['+'] = require('vim.ui.clipboard.osc52').paste,
+-- 		['*'] = require('vim.ui.clipboard.osc52').paste,
+-- 	},
+-- }
+
+-- }}}
+
+-- {{{ General key mappings
+-- Check for conflicts with `checkhealth which-key`
+vim.g.mapleader = " "
+vim.keymap.set('n', '<leader>fs', "<cmd>w<cr>", { desc = 'Save' })
+vim.keymap.set('n', '<leader>ff', "<cmd>Files %:p:h<cr>", { desc = 'File explore now' })
+vim.keymap.set('n', '<leader>fF', ':Files <c-r>=expand("%:p:h")<CR>', { desc = 'File explore path' })
+vim.keymap.set('n', '<leader>fg', ':GFiles <c-r>=expand("%:p:h")<CR><CR>', { desc = 'File (git) explore path now' })
+vim.keymap.set('n', '<leader>fG', ':GFiles <c-r>=expand("%:p:h")<CR>', { desc = 'File (git) explore path' })
+
+vim.keymap.set('n', '<leader>gs', '<cmd>Git<cr>', { desc = 'Git status' })
+
+vim.keymap.set('n', '<leader>bb', '<cmd>Buffers<cr>', { desc = 'List buffers' })
+vim.keymap.set('n', '<leader>bd', '<cmd>Bdelete<cr>', { desc = 'Delete buffer' })
+vim.keymap.set('n', '<leader>bD', '<cmd>Bwipeout<cr>', { desc = 'Delete buffer!' })
+vim.keymap.set('n', '<leader><tab>', '<C-^>', { desc = 'Previous buffer' })
+
+vim.keymap.set('n', '<leader>/', ':RG <c-r>=expand("<cword>")<cr><space>', { desc = 'rg cword' })
+vim.keymap.set('n', '<leader>?', ':RG <c-r>=expand("<cword>")<cr> <c-r>=expand("%:p:h")<cr>',
+    { desc = 'rg cword path' })
+vim.keymap.set('v', '<leader>/', '"vy:<c-w>RG "<c-r>v"<space>', { desc = 'rg selection (claiming "v)' })
+vim.keymap.set('v', '<leader>?', '"vy:<c-w>RG "<c-r>v" <c-r>=expand("%:p:h")<cr>',
+    { desc = 'rg selection path (claiming "v)' })
+vim.keymap.set('n', '<leader>g/', ':GG <c-r>=expand("<cword>")<cr><space>', { desc = 'git grep cword' })
+vim.keymap.set('n', '<leader>g?', ':GG <c-r>=expand("<cword>")<cr> <c-r>=expand("%:p:h")<cr>',
+    { desc = 'git grep cword path' })
+
+vim.keymap.set('n', '<leader>qq', "<cmd>q<cr>", { desc = 'Quit' })
+vim.keymap.set('n', '<leader>qa', "<cmd>qa<cr>", { desc = 'Quit all' })
+vim.keymap.set('n', '<leader>qa!', "<cmd>qa!<cr>", { desc = 'Quit all!' })
+vim.keymap.set('n', '<leader>q!', "<cmd>qa!<cr>", { desc = 'Quit!' })
+
+vim.keymap.set('n', '<leader>wd', "<cmd>q<cr>", { desc = 'Close win' })
+vim.keymap.set('n', '<C-w>d', "<cmd>q<cr>", { desc = 'Close win' })
+
+-- Simulate maximize/minimize window
+function ToggleMiniMaxiWin()
+    if vim.fn.tabpagewinnr(vim.fn.tabpagenr(), '$') > 1 then
+        -- Does this tab has more than 1 window? Then split the current window to a new tab, to simulate a zoom
+        vim.cmd("tab split")
+    elseif vim.fn.tabpagenr('$') > 1 then
+        -- Ok, so we want to restore the zoom, which we can do if we have more than 1 tab, otherwise it is already good
+        if vim.fn.tabpagenr() < vim.fn.tabpagenr('$') then
+            -- Our tab is not the last one
+            vim.cmd("tabclose")
+            vim.cmd("tabprevious")
+        else
+            vim.cmd("tabclose")
+        end
+    end
+end
+vim.keymap.set('n', '<C-w>m', ToggleMiniMaxiWin, { desc = 'Mini/maxi win' })
+vim.keymap.set('n', '<leader>wm', ToggleMiniMaxiWin, { desc = 'Mini/maxi win' })
+
+vim.keymap.set('n', '<leader>tr', "<cmd>syntax sync fromstart<cr>", { desc = 'Trigger manual syntax sync' })
+vim.keymap.set('n', '<leader>ts', "<cmd>set hlsearch!<cr>", { desc = 'Toggle search highlight' })
+vim.keymap.set({'n', 'v'}, '<leader>tw', ":StripWhitespace<cr>", { desc = 'Trigger fixing whitespaces' })
+
+-- Template subs, great for replacing a term already searched for, or manually filling it in
+vim.keymap.set('n', '<leader>ss', ":%s///g<left><left><left>", { desc = 'Sub ready to go' })
+vim.keymap.set('v', '<leader>ss', ":s///g<left><left><left>", { desc = 'Sub ready to go' })
+
+vim.keymap.set('n', 'gp', "`[v`]", { desc = 'Visual select pasted or edited' })
+
+function ToggleSignCcNum()
+    vim.o.signcolumn = vim.o.signcolumn == 'yes' and 'no' or 'yes'
+    vim.o.relativenumber = not vim.o.relativenumber
+    vim.o.number = not vim.o.number
+    vim.o.colorcolumn = vim.o.colorcolumn == '0' and '121' or '0'
+end
+vim.keymap.set('n', '<c-n><c-n>', ToggleSignCcNum, { desc = 'Toggle Sign Cc Num columns', noremap = true })
+
+-- Toggle hlsearch to see the mark
+vim.keymap.set('n', '*', "<cmd>let @/='\\<'.expand('<cword>').'\\>'<cr><cmd>set hlsearch!<cr><cmd>set hlsearch!<cr>",
+    { desc = '* but stay put' })
+vim.keymap.set('n', '<leader>*', ":%s/\\<<c-r><c-w>\\>//g<left><left>", { desc = 'Replace the word under cursor' })
+vim.keymap.set('v', '<leader>*', ":s/\\<\\>//g<left><left><left><left><left>",
+    { desc = 'Select a region and prepare a replace of a word' })
+
+-- vim.keymap.set('i', '<C-space>', '<c-x><c-o>', { desc = 'Trigger omnifunc' })
+vim.keymap.set('i', '<C-space>', '<c-x><c-u>', { desc = 'Trigger completefunc' })
+
+-- Terminal window switching
+vim.keymap.set('t', '<C-w>h', '<C-\\><C-n><C-w>h', { desc = 'Win go left' })
+vim.keymap.set('t', '<C-w>j', '<C-\\><C-n><C-w>j', { desc = 'Win go down' })
+vim.keymap.set('t', '<C-w>k', '<C-\\><C-n><C-w>k', { desc = 'Win go up' })
+vim.keymap.set('t', '<C-w>l', '<C-\\><C-n><C-w>l', { desc = 'Win go right' })
+vim.keymap.set('t', '<C-w>b', '<C-\\><C-n><C-w>b', { desc = 'Win go bottom' })
+vim.keymap.set('t', '<C-w>t', '<C-\\><C-n><C-w>t', { desc = 'Win go top' })
+vim.keymap.set('t', '<C-w>p', '<C-\\><C-n><C-w>p', { desc = 'Win go prev' })
+-- Below interferes with FZF search results, where it is nice to just ESC out from the result list
+--tnoremap <Esc> <C-\><C-n>
+
+vim.keymap.set({ 'n', 'x' }, 'ga', '<Plug>(EasyAlign)', { desc = 'EasyAlign (vipga / gaip)', noremap = true })
+-- }}}
+
+-- {{{ termdebug
+vim.cmd('packadd termdebug')
+vim.g.termdebug_config = {}
+vim.g.termdebug_config['command'] = "gdb"
+vim.g.termdebug_config['map_K'] = 0
+vim.keymap.set('n', '<leader>k', '<cmd>Evaluate<cr>', { desc = 'Termdebug evaluate', noremap = true })
+-- }}}
+
+-- {{{ General autocmds
+vim.api.nvim_create_autocmd('BufReadPost', {
+    desc = "When editing a file, always jump to the last cursor position",
+    callback = function()
+        if vim.fn.line("'\"") > 1 and vim.fn.line("'\"") <= vim.fn.line('$') then
+            vim.cmd('normal! g`"')
+        end
+    end
+})
+
+vim.api.nvim_create_autocmd('BufEnter', {
+    desc = "Set the cursor to first line for git commit messages",
+    pattern = { '*.git/COMMIT_EDITMSG' },
+    callback = function() vim.cmd('normal! gg0') end
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+    desc = "vim.vim ft allows for tw=78, extend that to 120. Only affects comments as per 'formatoptions'",
+    pattern = { 'vim', 'markdown' },
+    callback = function(ev) vim.bo[ev.buf].textwidth = 120 end
+})
+
+vim.api.nvim_create_autocmd({'BufRead', 'BufNewFile'}, {
+    desc = "Label Jenkins files as groovy",
+    pattern = { 'Jenkinsfile' },
+    callback = function() vim.o.filetype = 'groovy' end
+})
+
+vim.api.nvim_create_autocmd('TextYankPost', {
+    group = vim.api.nvim_create_augroup('highlight_yank', { clear = true }),
+    callback = function() vim.highlight.on_yank() end,
+})
+
+-- Since I am not a spelling bee
+-- [s ]s Navigate
+-- zg Add word to list
+-- z= Spelling corrections, 1z= for fist suggestion
+-- CTRL-X s to fix in insert-mode
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { -- Hmm, what is better, to list all I want or skip the ones I do not (popups)?
+        'gitcommit', 'text', 'cpp', 'c', 'h', 'vim', 'yang', 'ttcn', 'yaml', 'python', 'cmake', 'markdown',
+        'fugitive', 'unix', 'help', 'sh', 'cfg', 'csh', 'lua', 'go', 'make', 'sls', 'salt', 'fish'
+    },
+    callback = function()
+        vim.opt_local.spell = true
+        vim.opt_local.spelllang = "en_us"
+    end
+})
+
+-- }}}
+
 -- {{{ treesitter
 require('nvim-treesitter.configs').setup({
     highlight = {
         enable = true,
+        additional_vim_regex_highlighting = false,
     },
     indent = {
         enable = true,
-    },
-    incremental_selection = {
-        enable = true,
-        keymaps = {
-            init_selection = 'grr', -- As in 'very angry'!
-            node_incremental = 'grn',
-            scope_incremental = 'grc',
-            node_decremental = 'grN',
-        },
     },
     refactor = {
         -- highlight_definitions = {
@@ -45,101 +268,57 @@ require('nvim-treesitter.configs').setup({
         },
     },
     textobjects = {
-        enable = true,
         select = {
             enable = true,
+            lookahead = true,
             keymaps = {
-                ['af'] = '@function.outer',
-                ['if'] = '@function.inner',
-                ['aC'] = '@class.outer',
-                ['iC'] = '@class.inner',
-                ['ac'] = '@conditional.outer',
-                ['ic'] = '@conditional.inner',
-                ['ab'] = '@block.outer',
-                ['ib'] = '@block.inner',
-                ['al'] = '@loop.outer',
-                ['il'] = '@loop.inner',
-                ['is'] = '@statement.inner',
-                ['as'] = '@statement.outer',
-                ['am'] = '@call.outer',
-                ['im'] = '@call.inner',
-                ['ad'] = '@comment.outer',
-                ['aa'] = '@parameter.inner', -- Works, but still not perfect, still leaves the separator (if any)
+                ['aa'] = { query = '@parameter.outer', desc = 'an argument' },
+                ['ia'] = { query = '@parameter.inner', desc = 'inner part of an argument' },
+                ['af'] = { query = '@function.outer', desc = 'a function region' },
+                ['if'] = { query = '@function.inner', desc = 'inner part of a function region' },
+                ['al'] = { query = '@loop.outer', desc = 'a loop' },
+                ['il'] = { query = '@loop.inner', desc = 'inner part of a loop' },
             },
         },
+    },
+    endwise = {
+        enable = true,
     },
 })
 -- }}}
 
+-- {{{ LSP
 local lspconfig = require('lspconfig')
 
--- Use an on_attach function to only map the following keys
--- after the language server attaches to the current buffer
-local on_attach = function(client, bufnr)
-    local function buf_set_keymap(...)
-        vim.api.nvim_buf_set_keymap(bufnr, ...)
-    end
-    local function buf_set_option(...)
-        vim.api.nvim_buf_set_option(bufnr, ...)
-    end
+vim.keymap.set('n', '<leader>de', vim.diagnostic.open_float, { desc = 'Open diagnostics popup' })
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostics' })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostics' })
+vim.keymap.set('n', '<leader>dq', vim.diagnostic.setloclist, { desc = 'Open loc list with diagnostics' })
 
-    -- Let null-ls handle the formatting
-    client.server_capabilities.document_formatting = false
-    client.server_capabilities.document_range_formatting = false
+vim.api.nvim_create_autocmd('LspAttach', {
+    group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+    callback = function(ev)
+        vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+        local function map(mode, l, r, desc)
+            local opts = {
+                buffer = ev.buf,
+                desc = desc,
+            }
+            vim.keymap.set(mode, l, r, opts)
+        end
 
-    --Enable completion triggered by <c-x><c-o>
-    buf_set_option('formatexpr', 'v:lua.vim.lsp.formatexpr()')
-    buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
-    buf_set_option('tagfunc', 'v:lua.vim.lsp.tagfunc')
+        map('n', '<leader>gD', vim.lsp.buf.declaration, 'Go declaration')
+        map('n', '<leader>gd', vim.lsp.buf.definition, 'Go definition')
+        map('n', '<leader>gi', vim.lsp.buf.implementation, 'Go implemntation')
+        map('n', '<leader>gn', vim.lsp.buf.rename, 'Rename')
+        map('n', '<leader>ga', vim.lsp.buf.code_action, 'Code action')
+        map('n', '<leader>gr', vim.lsp.buf.references, 'Go references')
+        map('n', 'K', vim.lsp.buf.hover, 'Hover')
+        map('n', '<C-k>', vim.lsp.buf.signature_help, 'Signature help')
 
-    -- Mappings
-    local opts = { noremap = true, silent = true }
-
-    -- See `:help vim.lsp.*` for documentation on any of the below functions
-    buf_set_keymap('n', '<leader>gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-    buf_set_keymap('n', '<leader>gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
-    buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-    buf_set_keymap('n', '<leader>gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-    -- buf_set_keymap('n', '<space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
-    -- buf_set_keymap('n', '<space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
-    -- buf_set_keymap('n', '<space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
-    -- buf_set_keymap('n', '<leader>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
-    -- buf_set_keymap('n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-    buf_set_keymap('n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-    buf_set_keymap('n', '<leader>gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-    buf_set_keymap('n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
-    buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
-    buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
-    -- buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
-    -- buf_set_keymap('n', '<leader>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
-end
-
--- lspconfig.ccls.setup {
---     cmd = {
---         'ccls', '--log-file=/tmp/' .. os.getenv('USER') .. '/cc.log'
---     },
---     init_options = {
---         cache = {
---             directory = '/tmp/' .. os.getenv('USER') .. '/ccls';
---         },
---         -- Set this via `pick_compile_command`
---         compilationDatabaseDirectory = os.getenv("COMPILE_COMMANDS_DIR"),
---         index = {
---             initialBlacklist = {
---                 "./application",
---                 "./framework",
---                 "./toolbox",
---                 "./tools",
---                 "./up/dp/cdpi-main"
---             };
---             -- initialBlacklist = {"."};
---         },
---     },
---     on_attach = on_attach,
---     flags = {
---       debounce_text_changes = 150,
---     },
--- }
+        -- vim.cmd('syntax on') -- Do I need this? It was for spelling to skip keywords and variable names
+    end,
+})
 
 lspconfig.clangd.setup({
     cmd = {
@@ -148,14 +327,12 @@ lspconfig.clangd.setup({
         '--offset-encoding=utf-16',
         '--compile-commands-dir=' .. (os.getenv('COMPILE_COMMANDS_DIR') and os.getenv('COMPILE_COMMANDS_DIR') or '.'),
     },
-    on_attach = on_attach,
 })
 
 lspconfig.rust_analyzer.setup({
     cmd = {
         'rust-analyzer',
     },
-    on_attach = on_attach,
     flags = {
         debounce_text_changes = 150,
     },
@@ -181,34 +358,73 @@ lspconfig.rust_analyzer.setup({
     },
 })
 
-util = require('lspconfig/util')
-
 lspconfig.gopls.setup({
-    cmd = { 'gopls', 'serve' },
-    on_attach = on_attach,
-    filetypes = { 'go', 'gomod' },
-    root_dir = util.root_pattern('go.work', 'go.mod', '.git'),
     settings = {
         gopls = {
             analyses = {
                 unusedparams = true,
             },
             staticcheck = true,
+            buildFlags = {
+                "-tags=testft",
+            },
         },
     },
     capabilities = require('cmp_nvim_lsp').default_capabilities(),
 })
 
-lspconfig.salt_ls.setup({
-    on_attach = on_attach,
+-- lspconfig.salt_ls.setup({
+-- })
+
+-- lspconfig.jedi_language_server.setup({
+--     cmd = {
+--         'jedi-language-server',
+--     },
+-- })
+
+lspconfig.basedpyright.setup({
+    settings = {
+        basedpyright = {
+            typeCheckingMode = "standard", -- default is all, pretty based
+        }
+    }
+
 })
 
-lspconfig.jedi_language_server.setup({
-    cmd = {
-        'jedi-language-server',
+lspconfig.lua_ls.setup {
+    settings = {
+        Lua = {
+            format = {
+                enable = true,
+                defaultConfig = {
+                    indent_style = "space",
+                    indent_size = "2",
+                    quote_style = "single",
+                }
+            },
+            runtime = {
+                -- Tell the language server which version of Lua you're using
+                -- (most likely LuaJIT in the case of Neovim)
+                version = 'LuaJIT'
+            },
+            -- Make the server aware of Neovim runtime files
+            workspace = {
+                checkThirdParty = false,
+                library = {
+                    vim.env.VIMRUNTIME,
+                    -- Depending on the usage, you might want to add additional paths here.
+                    "${3rd}/luv/library"
+                    -- "${3rd}/busted/library",
+                }
+                -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
+                -- library = vim.api.nvim_get_runtime_file("", true)
+            },
+            telemetry = {
+                enabled = false
+            }
+        }
     },
-    on_attach = on_attach,
-})
+}
 
 -- But how to filter in the result in this one?
 require('lspfuzzy').setup({
@@ -216,103 +432,126 @@ require('lspfuzzy').setup({
         'right:+{2}-/2',
     },
 })
+-- }}}
 
-function formatter_rust()
-    return {
-        -- Need nightly to get the per lines feature
-        exe = os.getenv('HOME') .. '/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rustfmt',
-        args = {
-            '--emit=files',
-            '--unstable-features',
-            '--file-lines',
-            '\'[{"file":"$tempfile","range":[$start_line,$end_line]}]\'',
-        },
-        stdin = false,
-        cwd = vim.fn.getcwd(),
-        tempfile_inline = true,
-        range_lines_one_based = true,
+-- {{{ Formatting
+-- Use conform for gq
+vim.o.formatexpr = "v:lua.require('conform').formatexpr()"
+require("conform").setup({
+    formatters_by_ft = {
+        bash = { "shfmt" },
+        c = { "clang-format" },
+        cpp = { "clang-format" },
+        go = { "goimports", "golines" }, -- sequential
+        python = { "yapf", "ruff" },
+        rust = { "rustfmt" },
+        sh = { "shfmt" },
     }
-end
-require('formatter').setup({
-    filetype = {
-        -- c = { formatter_clang_format },
-        -- cpp = { formatter_clang_format },
-        -- rust = { formatter_rust },
-    },
 })
 
-local null_ls = require('null-ls')
-null_ls.setup({
-    -- debug = true,
-    cmd = { os.getenv('HOME') .. '/proj/neovim/build/bin/nvim' },
-    on_attach = function()
-        -- vim.cmd([[ command! -nargs=0 -range LspFormat execute 'lua vim.lsp.buf.range_formatting()' ]])
+require('conform').formatters.golines = {
+    prepend_args = { '--max-len', '120', '--shorten-comments' },
+}
 
-        -- TODO: This does not work too well, use autocmd for now
-        -- local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-        -- local opts = { noremap=true, silent=true }
-        -- local opts = { }
-        -- buf_set_keymap('v', 'gq', '<cmd>lua vim.lsp.buf.range_formatting()<CR>', opts)
-        -- buf_set_keymap('n', 'gq', '<cmd>lua vim.lsp.buf.range_formatting()<CR>', opts)
+require('conform').formatters.shfmt = {
+    prepend_args = { '--indent', '4' },
+}
+--- }}}
 
-        -- Needed for spelling to work, otherwise it would spellcheck everything, like keywords etc
-        vim.cmd([[ syntax on ]])
+-- {{{ Linting
+require('lint').linters_by_ft = {
+    bash = { 'shellcheck' },
+    go = { 'golangcilint' },
+    -- lua = { 'selene' },
+    python = { 'ruff', 'flake8', 'pylint', 'mypy' },
+    sh = { 'shellcheck' },
+    sls = { 'saltlint' },
+}
+
+local flake8 = require('lint').linters.flake8
+table.insert(flake8.args, 0, '--max-line-length=120')
+
+local pylint = require('lint').linters.pylint
+table.insert(pylint.args, 0, '--max-line-length=120')
+table.insert(pylint.args, 0, '--disable=logging-format-interpolation')
+table.insert(pylint.args, 0, '--disable=logging-fstring-interpolation')
+table.insert(pylint.args, 0, '--disable=missing-function-docstring')
+table.insert(pylint.args, 0, '--function-rgx=[a-z_][a-z0-9_]{2,120}$')
+table.insert(pylint.args, 0, '--method-rgx=[a-z_][a-z0-9_]{2,120}$')
+table.insert(pylint.args, 0, '--variable-rgx=[a-z_][a-z0-9_]{0,30}$')
+table.insert(pylint.args, 0, '--argument-rgx=[a-z_][a-z0-9_]{0,30}$')
+table.insert(pylint.args, 0, '--attr-rgx=[a-z_][a-z0-9_]{0,30}$')
+
+vim.api.nvim_create_autocmd({ 'BufWritePost', 'BufReadPost', 'InsertLeave' }, {
+    callback = function()
+        require('lint').try_lint()
     end,
-    sources = {
-        null_ls.builtins.formatting.stylua.with({
-            extra_args = { '--indent-type', 'Spaces', '--quote-style', 'AutoPreferSingle' },
-            command = 'stylua',
-        }),
-        null_ls.builtins.formatting.clang_format.with({
-            command = 'clang-format',
-        }),
-        null_ls.builtins.formatting.yapf.with({
-            command = 'yapf',
-        }),
-        null_ls.builtins.formatting.rustfmt.with({
-            extra_args = { '--edition', '2021' },
-        }),
-        -- null_ls.builtins.formatting.gofmt, -- done by goimports
-        null_ls.builtins.formatting.goimports,
-        null_ls.builtins.formatting.golines.with({
-            extra_args = { '--max-len', '120', '--shorten-comments' },
-        }),
-        null_ls.builtins.diagnostics.revive, -- for go linting, see ~/revive.toml
-        null_ls.builtins.diagnostics.golangci_lint, -- for go linting
-        null_ls.builtins.diagnostics.shellcheck.with({ filetypes = { 'sh', 'bash' } }),
-
-        -- This makes it so that formatexpr is set in ft=gitcommit and we can't run 'gq'
-        -- null_ls.builtins.completion.spell,
-    },
 })
+--- }}}
 
---- {{{ Colorscheme
+-- {{{ Folding
+vim.o.foldcolumn = '0'
+vim.o.foldlevelstart = 99
+vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+
+local ufo_handler = function(text, lnum, endLnum, width)
+      local suffix = "  "
+      local lines  = ('[%d lines] '):format(endLnum - lnum)
+
+      local cur_width = 0
+      for _, section in ipairs(text) do
+        cur_width = cur_width + vim.fn.strdisplaywidth(section[1])
+      end
+
+      suffix = suffix .. (' '):rep(width - cur_width - vim.fn.strdisplaywidth(lines) - 3)
+
+      table.insert(text, { suffix, 'Comment' })
+      table.insert(text, { lines, 'Todo' })
+      return text
+end
+
+require('ufo').setup({
+    open_fold_hl_timeout = 0,
+    fold_virt_text_handler = ufo_handler,
+    provider_selector = function()
+        return {'treesitter', 'indent'}
+    end
+})
+--- }}}
+
+-- {{{ Colorscheme
 
 require('kanagawa').setup({
-    -- commentStyle = 'NONE',
-    -- keywordStyle = 'NONE',
-    -- variablebuiltinStyle = 'NONE',
-    specialReturn = false,
-    specialException = false,
     transparent = false,
-
-    overrides = {
-        NormalNC = { bg = '#181820' }, -- As suggested via rebelot/kanagawa.nvim/issues/17
+    dimInactive = true,
+    colors = {
+        theme = {
+            all = {
+                ui = {
+                    bg_gutter = "none"
+                }
+            }
+        }
     },
+    overrides = function()
+        return {
+            ["@comment.todo"] = { link = "@text.todo" }, -- rebelot/kanagawa.nvim/issues/197
+        }
+    end,
 })
 
+vim.cmd('colorscheme kanagawa')
 vim.api.nvim_create_user_command('GoLight', function(opts)
     vim.cmd('set background=light')
-    vim.cmd("let $BAT_THEME='gruvbox-light'")
-    require('kanagawa').setup({ overrides = { NormalNC = { bg = '#C8C093' } } })
-    vim.cmd('colorscheme kanagawa')
+    vim.cmd("let $BAT_THEME='Kanagawa Lotus Light'")
+    vim.cmd("let $FZF_DEFAULT_OPTS='--color=light'")
     vim.cmd('highlight link GitSignsCurrentLineBlame TabLine')
 end, {})
 vim.api.nvim_create_user_command('GoDark', function(opts)
     vim.cmd('set background=dark')
-    vim.cmd("let $BAT_THEME='gruvbox-dark'")
-    require('kanagawa').setup({ overrides = { NormalNC = { bg = '#181820' } } })
-    vim.cmd('colorscheme kanagawa')
+    vim.cmd("let $BAT_THEME='Kanagawa Wave'")
+    vim.cmd("let $FZF_DEFAULT_OPTS='--color=dark'")
     vim.cmd('highlight link GitSignsCurrentLineBlame TabLine')
 end, {})
 
@@ -329,19 +568,15 @@ else
 end
 f.close()
 
-day_callback = function()
-    vim.cmd('GoLight')
-end
-
-night_callback = function()
-    vim.cmd('GoDark')
-end
-
 require('sunset').setup({
+    -- Gothenburg
     latitude = 57.7089,
     longitude = 11.9746,
-    day_callback = day_callback,
-    night_callback = night_callback,
+    -- Shanghai
+    -- latitude = 32.450166,
+    -- longitude = 120.388640,
+    day_callback = function() vim.cmd('GoLight') end,
+    night_callback = function() vim.cmd('GoDark') end,
 })
 
 --- }}}
@@ -355,15 +590,9 @@ require('smoothcursor').setup({
         head = { cursor = '', texthl = 'SmoothCursor', linehl = nil },
     },
     disabled_filetypes = {'fzf', 'gitmessengerpopup', ''},
+    max_threshold = 120
 })
 
-vim.api.nvim_set_option('clipboard', 'unnamed')
-
-local has_words_before = function()
-    unpack = unpack or table.unpack
-    local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-    return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match('%s') == nil
-end
 local luasnip = require('luasnip')
 local cmp = require('cmp')
 cmp.setup({
@@ -389,29 +618,27 @@ cmp.setup({
         -- ['<C-f>'] = cmp.mapping.scroll_docs(4),
         ['<C-Space>'] = cmp.mapping.complete(),
         ['<C-e>'] = cmp.mapping.abort(),
-        ['<CR>'] = cmp.mapping.confirm({ select = false }),
+        ['<CR>'] = cmp.mapping.confirm({ select = true }),
 
-        -- For snipets
-        ['<Tab>'] = cmp.mapping(function(fallback)
+        -- For snippets
+        ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
                 cmp.select_next_item()
-            elseif luasnip.expand_or_jumpable() then
-                luasnip.expand_or_jump()
-            elseif has_words_before() then
-                cmp.complete()
+            elseif luasnip.locally_jumpable(1) then
+                luasnip.jump(1)
             else
                 fallback()
             end
-        end, { 'i', 's' }),
-        ['<S-Tab>'] = cmp.mapping(function(fallback)
+        end, { "i", "s" }),
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
                 cmp.select_prev_item()
-            elseif luasnip.jumpable(-1) then
+            elseif luasnip.locally_jumpable(-1) then
                 luasnip.jump(-1)
             else
                 fallback()
             end
-        end, { 'i', 's' }),
+        end, { "i", "s" }),
     }),
     sources = cmp.config.sources({
         { name = 'nvim_lsp' },
@@ -425,6 +652,7 @@ cmp.setup({
 })
 
 require('colorizer').setup()
+vim.keymap.set('', '<leader>tc', "<cmd>ColorizerToggle<cr>", { desc = 'Toggle colorizer' })
 
 -- Disable virtual_text since it's redundant due to lsp_lines.
 vim.diagnostic.config({
@@ -433,17 +661,26 @@ vim.diagnostic.config({
 
     float = {
         border = 'rounded',
-        source = 'always', -- Which is good for null-ls, where we have multiple sources
+        source = true, -- Which is good for filetypes that can have multiple linters
     },
 })
-vim.keymap.set('', '<Leader>E', require('lsp_lines').toggle, { desc = 'Toggle lsp_lines' })
+vim.keymap.set('', '<leader>dt', require('lsp_lines').toggle, { desc = 'Toggle diagnostics' })
 require('lsp_lines').setup()
 
 require('diffview').setup({
     use_icons = false,
 })
 
-require('luasnip.loaders.from_vscode').lazy_load()
+local ls = require('luasnip.loaders.from_vscode')
+ls.lazy_load()
+vim.keymap.set({ 'i' }, '<c-K>', function() ls.expand() end, { silent = true })
+vim.keymap.set({ 'i', 's' }, '<c-L>', function() ls.jump(1) end, { silent = true })
+vim.keymap.set({ 'i', 's' }, '<c-J>', function() ls.jump(-1) end, { silent = true })
+vim.keymap.set({ 'i', 's' }, '<c-E>', function()
+    if ls.choice_active() then
+        ls.change_choice(1)
+    end
+end, { silent = true })
 
 local unlinkgrp = vim.api.nvim_create_augroup('UnlinkSnippetOnModeChange', { clear = true })
 vim.api.nvim_create_autocmd('ModeChanged', {
@@ -466,61 +703,117 @@ require('gitsigns').setup({
     },
     current_line_blame_formatter = ' <abbrev_sha>/<author>, <committer_time:%Y-%m-%d %X> - <summary>',
     on_attach = function(bufnr)
-        local gs = package.loaded.gitsigns
+        local gitsigns = require('gitsigns')
 
-        local function map(mode, l, r, opts)
-            opts = opts or {}
-            opts.buffer = bufnr
+        local function map(mode, l, r, desc)
+            local opts = {
+                buffer = bufnr,
+                desc = desc,
+            }
             vim.keymap.set(mode, l, r, opts)
         end
 
         -- Navigation
         map('n', ']c', function()
             if vim.wo.diff then
-                return ']c'
+                vim.cmd.normal({']c', bang = true})
+            else
+                gitsigns.nav_hunk('next', { navigation_message = true, wrap = false })
             end
-            vim.schedule(function()
-                gs.next_hunk({ navigation_message = true, wrap = false })
-            end)
-            return '<Ignore>'
-        end, { expr = true })
+        end, "Next git hunk")
 
         map('n', '[c', function()
             if vim.wo.diff then
-                return '[c'
+                vim.cmd.normal({'[c', bang = true})
+            else
+                gitsigns.nav_hunk('prev', { navigation_message = true, wrap = false })
             end
-            vim.schedule(function()
-                gs.prev_hunk({ navigation_message = true, wrap = false })
-            end)
-            return '<Ignore>'
-        end, { expr = true })
+        end, "Prev git hunk")
 
         -- Actions
-        map({ 'n', 'v' }, '<leader>hs', ':Gitsigns stage_hunk<CR>')
-        map({ 'n', 'v' }, '<leader>hr', ':Gitsigns reset_hunk<CR>')
-        map('n', '<leader>hS', gs.stage_buffer)
-        map('n', '<leader>hu', gs.undo_stage_hunk)
-        map('n', '<leader>hR', gs.reset_buffer)
-        map('n', '<leader>hp', gs.preview_hunk)
-        map('n', '<leader>hb', function()
-            gs.blame_line({ full = true })
-        end)
-        map('n', '<leader>tb', gs.toggle_current_line_blame)
-        map('n', '<leader>hd', gs.diffthis)
-        map('n', '<leader>hD', function()
-            gs.diffthis('~')
-        end)
-        map('n', '<leader>td', gs.toggle_deleted)
+        map('n', '<leader>ghs', gitsigns.stage_hunk, 'Stage hunk')
+        map('n', '<leader>ghr', gitsigns.reset_hunk, 'Reset hunk')
+        map('v', '<leader>ghs', function() gitsigns.stage_hunk { vim.fn.line('.'), vim.fn.line('v') } end, 'Stage hunk')
+        map('v', '<leader>ghr', function() gitsigns.reset_hunk { vim.fn.line('.'), vim.fn.line('v') } end, 'Reset hunk')
+        map('n', '<leader>ghS', gitsigns.stage_buffer, 'Stage buffer')
+        map('n', '<leader>ghu', gitsigns.undo_stage_hunk, 'Unstage hunk')
+        map('n', '<leader>ghR', gitsigns.reset_buffer, 'Reset buffer')
+        map('n', '<leader>ghp', gitsigns.preview_hunk, 'Preview hunk')
+        -- TODO Replace git-messenger with gitsignsblame_line()? But the info and layout is not as great (yet)?
+        map('n', '<leader>gb', function() gitsigns.blame_line({ full = true }) end, 'Hunk blame')
+        map('n', '<leader>ghd', gitsigns.diffthis, 'Hunk diff file')
+        map('n', '<leader>ghD', function() gitsigns.diffthis('~') end, 'Diff with ~')
+        map('n', '<leader>gtb', gitsigns.toggle_current_line_blame, 'Toggle line blame')
+        map('n', '<leader>gtd', gitsigns.toggle_deleted, 'Toggle deleted lines')
 
         -- Text object
-        map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+        map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>', 'Select hunk')
     end,
 })
 
 require("no-neck-pain").setup({
-    enableOnVimEnter = true,
+    autocmds = {
+        enableOnVimEnter = true,
+    },
     width = 160,
 })
+
+require('fidget').setup({})
+
+require('highlight-undo').setup({})
+
+require('render-markdown').setup({})
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = { 'markdown' },
+    callback = function(ev)
+        vim.keymap.set('n', '<leader>md', require('render-markdown').toggle,
+            { buffer = ev.buf, desc = 'Toggle md rendering' })
+    end
+})
+
+local wk = require('which-key') -- :checkhealth which-key
+wk.register({
+    ['<leader>t'] = { name = '+Toggle/Trigger' },
+    ['<leader>s'] = { name = '+Search' },
+    ['<leader>q'] = { name = '+Quit' },
+    ['<leader>w'] = { name = '+Window' },
+    ['<leader>f'] = { name = '+File' },
+    ['<leader>g'] = { name = '+Git' },
+    ['<leader>gh'] = { name = '+Hunks' }, -- ? Does not show up
+    ['<leader>gt'] = { name = '+Toggle' }, -- ? Does not show up
+    ['<leader>d'] = { name = '+Diagnostics' },
+    ['<leader>b'] = { name = '+Buffer' },
+    ['yo'] = { name = '+Toggle options' }, -- From unimpaired
+}, { mode = { 'n', 'v', 'x', 'o' } })
+vim.o.timeout = true
+vim.o.timeoutlen = 300
+
+require('nvim-surround').setup({})
+require('flash').setup({})
+-- ; and , to adjust the scope
+vim.keymap.set({ 'n', 'x', 'o' }, '<leader>st', function() require('flash').treesitter() end,
+    { desc = 'Flash Treesitter Selection' })
+vim.keymap.set('n', '<leader>tf', function() require('flash').toggle() end, { desc = 'Toggle Flash Search' })
+vim.keymap.set("c", "<c-s>", function() require("flash").toggle() end, {desc = "Toggle Flash Search"})
+
+require('ultimate-autopair').setup({})
+
+require('antonym').setup({})
+vim.keymap.set('n', '<leader>ta', '<cmd>AntonymWord<CR>', {desc = "Toggle antonym word"})
+
+require('unimpaired').setup({})
+wk.register({
+    ['yo'] = { name = '+Toggle options' },
+    [']o'] = { name = '+Disable options' },
+    ['[o'] = { name = '+Enable options' },
+}, { mode = 'n' })
+
+require('debugprint').setup({
+    print_tag = "OPENBAR",
+})
+wk.register({
+    ['g?'] = { name = '+debugprint' },
+}, { mode = {'n', 'v'} })
 
 -- Default marker {{{ }}}
 -- vim: foldmethod=marker foldlevel=0
