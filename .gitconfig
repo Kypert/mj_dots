@@ -30,6 +30,7 @@
     whereis = log --source --all -S
     whois = !bash -c 'git log -i -1 --pretty=\"format:%an <%ae>
     whois = \" --author=\"$1\"' -
+    logmr = log --no-merges --no-decorate --abbrev-commit --pretty=oneline --perl-regexp --author='^((?!ci-helper).*)$'
 [color]
     ui = true
 [color "diff-highlight"]
@@ -62,57 +63,13 @@
     algorithm = histogram
     colorMoved = default
 [delta]
-    light = true
-    syntax-theme = GitHub
+    dark = true
+    syntax-theme = Kanagawa Wave
     navigate = true
     # features = side-by-side line-numbers decorations
-    features = line-numbers zebra-dark
+    features = line-numbers
 
 [interactive]
-    diffFilter = delta --color-only
+    diffFilter = delta
 [add.interactive]
     useBuiltin = false
-
-# From dandavison/delta/blob/master/themes.gitconfig
-[delta "zebra-dark"]
-    # This is the light version, but modded to be run in a dark terminal
-    minus-style = syntax "#fbdada"
-    minus-emph-style = syntax "#f6b6b6"
-    plus-style = syntax "#d6ffd6"
-    plus-emph-style = syntax "#adffad"
-    map-styles = \
-       bold Purple => syntax "#feecf7", \
-       bold Blue => syntax "#e5dff6", \
-       bold Cyan => syntax "#d8fdf6", \
-       bold Yellow => syntax "#f4ffe0"
-    zero-style = syntax
-    whitespace-error-style = "#aaaaaa"
-
-    # White diff, even if we use a black terminal
-    zero-style                   = 'syntax brightwhite' # GODARK
-    minus-style                  = 'syntax auto'        # GODARK
-    minus-emph-style             = 'syntax auto'        # GODARK
-    plus-style                   = 'syntax auto'        # GODARK
-    plus-emph-style              = 'syntax auto'        # GODARK
-    hunk-header-style            = 'syntax brightwhite' # GODARK
-    hunk-header-decoration-style = 'White  box'         # GODARK
-    line-numbers-zero-style      = 'Black  brightwhite' # GODARK
-    line-numbers-plus-style      = 'Green  brightwhite' # GODARK
-    line-numbers-minus-style     = 'Red    brightwhite' # GODARK
-    line-numbers-left-style      = 'Black  brightwhite' # GODARK
-    line-numbers-right-style     = 'Black  brightwhite' # GODARK
-
-[delta "zebra-light"]
-    # This is the normal light version
-    minus-style = syntax "#fbdada"
-    minus-emph-style = syntax "#f6b6b6"
-    plus-style = syntax "#d6ffd6"
-    plus-emph-style = syntax "#adffad"
-    map-styles = \
-       bold Purple => syntax "#feecf7", \
-       bold Blue => syntax "#e5dff6", \
-       bold Cyan => syntax "#d8fdf6", \
-       bold Yellow => syntax "#f4ffe0"
-    zero-style = syntax
-    whitespace-error-style = "#aaaaaa"
-
