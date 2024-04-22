@@ -1,19 +1,22 @@
 set --local vim_bin /home/$USER/proj/neovim/build/bin/nvim
-set --local alacritty_bin /home/$USER/proj/alacritty/target/release/alacritty
-
-set --global BG_COLOR_FILE /tmp/term_bg_color
-if not test -e $BG_COLOR_FILE
-    echo "dark" > $BG_COLOR_FILE
-end
 
 set -x EDITOR $vim_bin
-set -g -x BAT_THEME gruvbox-(cat $BG_COLOR_FILE)
 set -x GIT_EDITOR $vim_bin
 set -x WORK_DIR $HOME/proj/work
 
-set -g -x PATH $PATH /usr/local/go/bin
-set -g -x PATH $PATH $HOME/go/bin
+set -g -x PATH $PATH $HOME/google-cloud-sdk/bin
 set -g -x PATH $PATH $HOME/node_modules/.bin
+set -g -x PATH $PATH $HOME/.cargo/bin
+
+# set -g -x PATH $PATH /usr/local/go/bin
+set -g -x PATH $PATH $HOME/go/bin
+alias go 'go1.22.2'
+# For some reason GOROOT is not set properly in gopls, it picks up the default go and GOROOT in /usr/local/go/src/slices
+set -x GOROOT (go env GOROOT)
+which go > /dev/null
+if test ! $status -eq 0
+    ln -sf $HOME/go/bin/go1.22.2 $HOME/.local/bin/go
+end
 
 if not status is-interactive
     return
@@ -21,13 +24,19 @@ end
 
 set --universal fish_greeting "🐟🐟🐟"
 
+# Override exit to let jobs roam free
+function exit
+    jobs -q; and disown (jobs -p)
+    builtin exit
+end
+
 # Commands to run in interactive sessions can go here
 fish_config theme choose kanagawa
 alias nvim (echo $vim_bin)
 alias vi (echo $vim_bin)
 alias vim (echo $vim_bin)
 alias vim_no_cfg (echo $vim_bin -u NONE)
-alias alacritty (echo $alacritty_bin)
+alias ip 'ip --color=auto'
 
 function gitme
     set --local me (finger $USER | grep -Eo "Name: (.*)" | cut -b (echo "Name: " | wc -c)-)
@@ -88,6 +97,7 @@ alias kc            'kubectl --insecure-skip-tls-verify'
 
 alias dockerkillall 'docker kill (docker ps | tail -n +2 | cut -d" " -f 1)'
 alias dockerrmall   'docker rm (docker ps -a | tail -n +2 | cut -d" " -f 1)'
+alias dockerrmallvolumes   'docker volume prune --filter all=1'
 
 alias pick_compile_commands 'set --global --export COMPILE_COMMANDS_DIR (find . | grep compile_commands.json | fzf-tmux | xargs dirname)'
 
@@ -120,9 +130,6 @@ alias kubefilter_normal 'bat -l kubelog'
 alias kubefilter        'jq -R -r --unbuffered \'. as $line | try (fromjson | .timestamp + " " + .service_id + " " + .severity + " " + .metadata.proc_id + " " + .message) catch $line \' | kubefilter_normal'
 alias kubefilter_no_paging 'jq -R -r --unbuffered \'. as $line | try (fromjson | .timestamp + " " + .service_id + " " + .severity + " " + .metadata.proc_id + " " + .message) catch $line \' | bat -l log --paging=never'
 
-# Enable fzf in fish
-fzf_key_bindings
-
 function helpc
     # Help with color
     $argv | bat --plain --language=help --pager=never
@@ -137,8 +144,9 @@ function start_agent
     ssh-agent -c | sed 's/^echo/#echo/' > $SSH_ENV
     echo "succeeded"
     chmod 600 $SSH_ENV
-    . $SSH_ENV > /dev/null
+    . $SSH_ENV
     ssh-add
+    ssh-add ~/.ssh/google_compute_engine
 end
 
 function test_identities
@@ -152,36 +160,50 @@ function test_identities
     end
 end
 
-if [ -n "$SSH_AGENT_PID" ]
-    ps -ef | grep $SSH_AGENT_PID | grep ssh-agent > /dev/null
-    if [ $status -eq 0 ]
-        test_identities
-    end
-else
-    if [ -f $SSH_ENV ]
-        . $SSH_ENV > /dev/null
-    end
-    ps -ef | grep $SSH_AGENT_PID | grep -v grep | grep ssh-agent > /dev/null
-    if [ $status -eq 0 ]
-        test_identities
-    else
-        start_agent
-    end
+if [ -f $SSH_ENV ]
+    . $SSH_ENV
 end
+# If we have an alive socket, reuse it
+if [ -S "$SSH_AUTH_SOCK" ]
+    test_identities
+else
+    start_agent
+end
+
+set FZF_CTRL_T_OPTS "--preview 'bat -n --color=always {}' --header 'Preview layout: CTRL-/'
+    --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 
 function set_bg_mode
     # Create a very special file to denote the wanted bg color
     echo $argv[1] > $BG_COLOR_FILE
-    set --global --export BAT_THEME gruvbox-$argv[1]
-    sed -i --follow-symlinks "s/\(colors: \*\).*/\1$argv[1]/" ~/.alacritty.yml
     if test "$argv[1]" = "light"
-        sed -i --follow-symlinks 's/ zebra-dark/ zebra-light/' ~/.gitconfig.user
+        set --global --export BAT_THEME "Kanagawa Lotus Light"
+        set --global --export FZF_DEFAULT_OPTS --color=light
+        sed -i --follow-symlinks 's/dark = true/light = true/' ~/.gitconfig.user
+        sed -i --follow-symlinks 's/syntax-theme = .*/syntax-theme = Kanagawa Lotus Light/' ~/.gitconfig.user
+        sed -i --follow-symlinks "s/kanagawa.*.toml/kanagawa_lotus.toml/" ~/.alacritty.toml
     else
-        sed -i --follow-symlinks 's/ zebra-light/ zebra-dark/' ~/.gitconfig.user
+        set --global --export BAT_THEME "Kanagawa Wave"
+        set --global --export FZF_DEFAULT_OPTS --color=dark
+        sed -i --follow-symlinks 's/light = true/dark = true/' ~/.gitconfig.user
+        sed -i --follow-symlinks 's/syntax-theme = .*/syntax-theme = Kanagawa Wave/' ~/.gitconfig.user
+        sed -i --follow-symlinks "s/kanagawa.*.toml/kanagawa.toml/" ~/.alacritty.toml
     end
 end
 alias go_dark 'set_bg_mode dark'
 alias go_light 'set_bg_mode light'
+
+set --global BG_COLOR_FILE /tmp/term_bg_color
+if not test -e $BG_COLOR_FILE
+    go_dark
+else
+    set --local bg $(cat $BG_COLOR_FILE)
+    if test "$bg" = "light"
+        go_light
+    else
+        go_dark
+    end
+end
 
 function run_many
     # Run X iterations, stop upon failure
