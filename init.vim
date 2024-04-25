@@ -1,5 +1,3 @@
-set listchars=tab:>\ ,trail:-,eol:$ " Gets overwritten to something default if set in lua (0.9.5)
-
 " Specify a directory for plugins
 " " - For Neovim: ~/.local/share/nvim/plugged
 " " - Avoid using standard Vim directory names like 'plugin'
@@ -16,8 +14,6 @@ Plug 'hrsh7th/cmp-nvim-lua'
 Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
 Plug 'hrsh7th/nvim-cmp'
 
-Plug 'tpope/vim-sensible'             " Better than nocompat
-Plug 'tpope/vim-commentary'           " Comment stuff with gc TODO: can be removed in nvim 0.10.0
 Plug 'tpope/vim-speeddating'          " Ctrl-A / Ctrl-X more things
 Plug 'tpope/vim-fugitive'             " Need git
 Plug 'tpope/vim-repeat'

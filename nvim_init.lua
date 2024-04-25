@@ -60,9 +60,13 @@ vim.o.inccommand = 'split' -- Live preview of subs
 vim.o.mouse = ''
 vim.o.splitbelow = true
 vim.o.splitright = true
--- vim.o.smoothscroll = true -- Set in nvim 0.10.0?
-vim.o.updatetime = 100 -- Default is 4s, but reduce it to make things more real time, like git gutter
+vim.o.smoothscroll = true
+vim.o.scrolloff = 1     -- from vim-sensible
+vim.o.sidescroll = 1    -- from vim-sensible
+vim.o.sidescrolloff = 2 -- from vim-sensible
+vim.o.updatetime = 100  -- Default is 4s, but reduce it to make things more real time, like git gutter
 
+vim.o.listchars = "tab:> ,trail:-,eol:$"
 vim.o.expandtab = true
 vim.o.tabstop = 4
 vim.o.shiftwidth = 4
@@ -536,19 +540,19 @@ require('kanagawa').setup({
     },
     overrides = function()
         return {
-            ["@comment.todo"] = { link = "@text.todo" }, -- rebelot/kanagawa.nvim/issues/197
+            ["@comment.todo.comment"] = { link = "@comment.note" }, -- rebelot/kanagawa.nvim/issues/197
         }
     end,
 })
 
 vim.cmd('colorscheme kanagawa')
-vim.api.nvim_create_user_command('GoLight', function(opts)
+vim.api.nvim_create_user_command('GoLight', function(_)
     vim.cmd('set background=light')
     vim.cmd("let $BAT_THEME='Kanagawa Lotus Light'")
     vim.cmd("let $FZF_DEFAULT_OPTS='--color=light'")
     vim.cmd('highlight link GitSignsCurrentLineBlame TabLine')
 end, {})
-vim.api.nvim_create_user_command('GoDark', function(opts)
+vim.api.nvim_create_user_command('GoDark', function(_)
     vim.cmd('set background=dark')
     vim.cmd("let $BAT_THEME='Kanagawa Wave'")
     vim.cmd("let $FZF_DEFAULT_OPTS='--color=dark'")
@@ -581,30 +585,13 @@ require('sunset').setup({
 
 --- }}}
 
-require('lualine').setup()
-
-require('smoothcursor').setup({
-    cursor = '',
-    fancy = {
-        enable = true,
-        head = { cursor = '', texthl = 'SmoothCursor', linehl = nil },
-    },
-    disabled_filetypes = {'fzf', 'gitmessengerpopup', ''},
-    max_threshold = 120
-})
-
+-- {{{ Snippets
 local luasnip = require('luasnip')
 local cmp = require('cmp')
 cmp.setup({
-    snippet = {
-        expand = function(args)
-            require('luasnip').lsp_expand(args.body)
-            -- vim.fn["UltiSnips#Anon"](args.body)
-        end,
-    },
     enabled = function()
         -- Disable completion in comments
-        local context = require('cmp.config.context')
+        -- local context = require('cmp.config.context')
         -- Keep command mode completion enabled when cursor is in a comment
         -- if vim.api.nvim_get_mode().mode == 'c' then
         --     return true
@@ -614,8 +601,8 @@ cmp.setup({
         return true
     end,
     mapping = cmp.mapping.preset.insert({
-        -- ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-        -- ['<C-f>'] = cmp.mapping.scroll_docs(4),
+        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+        ['<C-f>'] = cmp.mapping.scroll_docs(4),
         ['<C-Space>'] = cmp.mapping.complete(),
         ['<C-e>'] = cmp.mapping.abort(),
         ['<CR>'] = cmp.mapping.confirm({ select = true }),
@@ -624,6 +611,8 @@ cmp.setup({
         ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
                 cmp.select_next_item()
+            elseif vim.snippet.jumpable(1) then
+                vim.snippet.jump(1)
             elseif luasnip.locally_jumpable(1) then
                 luasnip.jump(1)
             else
@@ -633,6 +622,8 @@ cmp.setup({
         ["<S-Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
                 cmp.select_prev_item()
+            elseif vim.snippet.jumpable(-1) then
+                vim.snippet.jump(-1)
             elseif luasnip.locally_jumpable(-1) then
                 luasnip.jump(-1)
             else
@@ -649,6 +640,42 @@ cmp.setup({
     }, {
         { name = 'buffer' },
     }),
+})
+
+local ls = require('luasnip.loaders.from_vscode')
+ls.lazy_load()
+-- vim.keymap.set({ 'i' }, '<c-K>', function() ls.expand() end, { silent = true })
+-- vim.keymap.set({ 'i', 's' }, '<c-L>', function() ls.jump(1) end, { silent = true })
+-- vim.keymap.set({ 'i', 's' }, '<c-J>', function() ls.jump(-1) end, { silent = true })
+-- vim.keymap.set({ 'i', 's' }, '<c-E>', function()
+--     if ls.choice_active() then
+--         ls.change_choice(1)
+--     end
+-- end, { silent = true })
+
+local unlinkgrp = vim.api.nvim_create_augroup('UnlinkSnippetOnModeChange', { clear = true })
+vim.api.nvim_create_autocmd('ModeChanged', {
+    group = unlinkgrp,
+    pattern = { 's:n', 'i:*' },
+    desc = 'Forget the current snippet when leaving the insert mode (L3MON4D3/LuaSnip/issues/656)',
+    callback = function(evt)
+        if luasnip.session and luasnip.session.current_nodes[evt.buf] and not luasnip.session.jump_active then
+            luasnip.unlink_current()
+        end
+    end,
+})
+--- }}}
+
+require('lualine').setup()
+
+require('smoothcursor').setup({
+    cursor = '',
+    fancy = {
+        enable = true,
+        head = { cursor = '', texthl = 'SmoothCursor', linehl = nil },
+    },
+    disabled_filetypes = {'fzf', 'gitmessengerpopup', ''},
+    max_threshold = 120
 })
 
 require('colorizer').setup()
@@ -669,29 +696,6 @@ require('lsp_lines').setup()
 
 require('diffview').setup({
     use_icons = false,
-})
-
-local ls = require('luasnip.loaders.from_vscode')
-ls.lazy_load()
-vim.keymap.set({ 'i' }, '<c-K>', function() ls.expand() end, { silent = true })
-vim.keymap.set({ 'i', 's' }, '<c-L>', function() ls.jump(1) end, { silent = true })
-vim.keymap.set({ 'i', 's' }, '<c-J>', function() ls.jump(-1) end, { silent = true })
-vim.keymap.set({ 'i', 's' }, '<c-E>', function()
-    if ls.choice_active() then
-        ls.change_choice(1)
-    end
-end, { silent = true })
-
-local unlinkgrp = vim.api.nvim_create_augroup('UnlinkSnippetOnModeChange', { clear = true })
-vim.api.nvim_create_autocmd('ModeChanged', {
-    group = unlinkgrp,
-    pattern = { 's:n', 'i:*' },
-    desc = 'Forget the current snippet when leaving the insert mode (L3MON4D3/LuaSnip/issues/656)',
-    callback = function(evt)
-        if luasnip.session and luasnip.session.current_nodes[evt.buf] and not luasnip.session.jump_active then
-            luasnip.unlink_current()
-        end
-    end,
 })
 
 require('gitsigns').setup({
@@ -783,7 +787,6 @@ wk.register({
     ['<leader>gt'] = { name = '+Toggle' }, -- ? Does not show up
     ['<leader>d'] = { name = '+Diagnostics' },
     ['<leader>b'] = { name = '+Buffer' },
-    ['yo'] = { name = '+Toggle options' }, -- From unimpaired
 }, { mode = { 'n', 'v', 'x', 'o' } })
 vim.o.timeout = true
 vim.o.timeoutlen = 300
