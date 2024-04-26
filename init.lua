@@ -14,6 +14,88 @@ function dump(o)
     end
 end
 
+-- {{{ Plugins
+-- Consider nyngwang/murmur.lua or RRethy/vim-illuminate for cursor word highlight
+-- Consider linrongbin16/fzfx.nvim or ibhagwan/fzf-lua instead of junegunn/fzf.vim
+local Plug = vim.fn['plug#']
+vim.call('plug#begin') -- Neovim: stdpath('data') . '/plugged' = (~/.local.share/nvim/plugged)
+
+Plug('neovim/nvim-lspconfig')
+Plug('ojroques/nvim-lspfuzzy')
+
+Plug('hrsh7th/cmp-nvim-lsp')
+Plug('hrsh7th/cmp-buffer')
+Plug('hrsh7th/cmp-path')
+Plug('hrsh7th/cmp-cmdline')
+Plug('mtoohey31/cmp-fish')
+Plug('hrsh7th/cmp-nvim-lua')
+Plug('hrsh7th/cmp-nvim-lsp-signature-help')
+Plug('hrsh7th/nvim-cmp')
+
+Plug('tpope/vim-speeddating')          -- Ctrl-A / Ctrl-X more things
+Plug('tpope/vim-fugitive')             -- Need git
+Plug('tpope/vim-repeat')
+Plug('tummetott/unimpaired.nvim')
+Plug('tpope/vim-abolish')              -- Super-Charged subst and search via :Subvert
+Plug('tpope/vim-eunuch')               -- For the shebang filetype redetect and chmod+x
+Plug('tpope/vim-sleuth')               -- For replacing need for tab settings
+Plug('ntpeters/vim-better-whitespace') -- StripWhitespace for trailing spaces
+Plug('rebelot/kanagawa.nvim')          -- colorsheme to use!
+Plug('junegunn/vim-easy-align')        -- Align everything
+Plug('junegunn/fzf', { ['do'] = function() vim.fn('fzf#install()') end })
+Plug('junegunn/fzf.vim')
+Plug('nvim-lualine/lualine.nvim')      -- The status line
+Plug('altermo/ultimate-autopair.nvim', { ['branch'] = 'v0.6' })
+Plug('moll/vim-bbye')                  -- Bdelete and Bwipeout
+Plug('nathanalderson/yang.vim')
+Plug('gen740/smoothcursor.nvim')
+
+Plug('rhysd/git-messenger.vim')
+Plug('wellle/targets.vim')             -- Add more targets, like aa (conflicts with treesitter)
+Plug('nvim-treesitter/nvim-treesitter')
+Plug('nvim-treesitter/nvim-treesitter-refactor')
+Plug('nvim-treesitter/nvim-treesitter-textobjects')
+Plug('RRethy/nvim-treesitter-endwise')
+Plug('MTDL9/vim-log-highlighting')
+
+Plug('nvim-lua/plenary.nvim')
+
+Plug('stevearc/conform.nvim')
+Plug('mfussenegger/nvim-lint')
+
+Plug('Glench/Vim-Jinja2-Syntax')
+Plug('vmware-archive/salt-vim')
+
+Plug('NvChad/nvim-colorizer.lua')
+
+Plug('https://git.sr.ht/~whynothugo/lsp_lines.nvim')
+
+Plug('sindrets/diffview.nvim') -- Need plenary
+
+Plug('vinnymeller/swagger-preview.nvim')
+Plug('JManch/sunset.nvim')
+
+Plug('L3MON4D3/LuaSnip', {['tag'] = 'v2.*', ['do'] = 'make install_jsregexp'}) -- Try native snippets in 0.10.0
+Plug('saadparwaiz1/cmp_luasnip')
+Plug('rafamadriz/friendly-snippets')
+
+Plug('lewis6991/gitsigns.nvim')
+Plug('shortcuts/no-neck-pain.nvim')
+
+Plug('kevinhwang91/promise-async')
+Plug('kevinhwang91/nvim-ufo')
+
+Plug('j-hui/fidget.nvim') -- Extensible UI for Neovim notifications and LSP progress messages
+Plug('tzachar/highlight-undo.nvim')
+Plug('kylechui/nvim-surround')
+Plug('MeanderingProgrammer/markdown.nvim')
+Plug('folke/which-key.nvim')
+Plug('folke/flash.nvim')
+Plug('gczcn/antonym.nvim') -- Toggle with <leader>ta
+Plug('andrewferrier/debugprint.nvim')
+vim.call('plug#end')
+-- }}}
+
 -- {{{ Globals and general options
 -- Use preview globally, like in Buffers, Files. RG uses '?' to toggle it, since the search itself can be long
 vim.g.fzf_preview_window = 'right:50%'
@@ -473,18 +555,21 @@ require('lint').linters_by_ft = {
 }
 
 local flake8 = require('lint').linters.flake8
-table.insert(flake8.args, 0, '--max-line-length=120')
+table.insert(flake8.args, 1, '--max-line-length=120')
 
 local pylint = require('lint').linters.pylint
-table.insert(pylint.args, 0, '--max-line-length=120')
-table.insert(pylint.args, 0, '--disable=logging-format-interpolation')
-table.insert(pylint.args, 0, '--disable=logging-fstring-interpolation')
-table.insert(pylint.args, 0, '--disable=missing-function-docstring')
-table.insert(pylint.args, 0, '--function-rgx=[a-z_][a-z0-9_]{2,120}$')
-table.insert(pylint.args, 0, '--method-rgx=[a-z_][a-z0-9_]{2,120}$')
-table.insert(pylint.args, 0, '--variable-rgx=[a-z_][a-z0-9_]{0,30}$')
-table.insert(pylint.args, 0, '--argument-rgx=[a-z_][a-z0-9_]{0,30}$')
-table.insert(pylint.args, 0, '--attr-rgx=[a-z_][a-z0-9_]{0,30}$')
+pylint.args = {
+    '--max-line-length=120',
+    '--disable=logging-format-interpolation',
+    '--disable=logging-fstring-interpolation',
+    '--disable=missing-function-docstring',
+    '--function-rgx=[a-z_][a-z0-9_]{2,120}$',
+    '--method-rgx=[a-z_][a-z0-9_]{2,120}$',
+    '--variable-rgx=[a-z_][a-z0-9_]{0,30}$',
+    '--argument-rgx=[a-z_][a-z0-9_]{0,30}$',
+    '--attr-rgx=[a-z_][a-z0-9_]{0,30}$',
+    unpack(pylint.args),
+}
 
 vim.api.nvim_create_autocmd({ 'BufWritePost', 'BufReadPost', 'InsertLeave' }, {
     callback = function()
