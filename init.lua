@@ -1,12 +1,12 @@
 -- For debugging, print anything
-function dump(o)
+function Dump(o)
     if type(o) == 'table' then
         local s = '{ '
         for k, v in pairs(o) do
             if type(k) ~= 'number' then
                 k = '"' .. k .. '"'
             end
-            s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
+            s = s .. '[' .. k .. '] = ' .. Dump(v) .. ','
         end
         return s .. '} '
     else
@@ -16,12 +16,10 @@ end
 
 -- {{{ Plugins
 -- Consider nyngwang/murmur.lua or RRethy/vim-illuminate for cursor word highlight
--- Consider linrongbin16/fzfx.nvim or ibhagwan/fzf-lua instead of junegunn/fzf.vim
 local Plug = vim.fn['plug#']
 vim.call('plug#begin') -- Neovim: stdpath('data') . '/plugged' = (~/.local.share/nvim/plugged)
 
 Plug('neovim/nvim-lspconfig')
-Plug('ojroques/nvim-lspfuzzy')
 
 Plug('hrsh7th/cmp-nvim-lsp')
 Plug('hrsh7th/cmp-buffer')
@@ -42,10 +40,8 @@ Plug('tpope/vim-sleuth')               -- For replacing need for tab settings
 Plug('ntpeters/vim-better-whitespace') -- StripWhitespace for trailing spaces
 Plug('rebelot/kanagawa.nvim')          -- colorsheme to use!
 Plug('junegunn/vim-easy-align')        -- Align everything
-Plug('junegunn/fzf', { ['do'] = function() vim.fn('fzf#install()') end })
-Plug('junegunn/fzf.vim')
+Plug('ibhagwan/fzf-lua', { ['branch'] = 'main' })
 Plug('nvim-lualine/lualine.nvim')      -- The status line
-Plug('altermo/ultimate-autopair.nvim', { ['branch'] = 'v0.6' })
 Plug('moll/vim-bbye')                  -- Bdelete and Bwipeout
 Plug('nathanalderson/yang.vim')
 Plug('gen740/smoothcursor.nvim')
@@ -97,26 +93,6 @@ vim.call('plug#end')
 -- }}}
 
 -- {{{ Globals and general options
--- Use preview globally, like in Buffers, Files. RG uses '?' to toggle it, since the search itself can be long
-vim.g.fzf_preview_window = 'right:50%'
-
--- Make RG able to take args like in the shell
--- junegunn/fzf.vim/issues/419
-vim.cmd([[command! -bang -nargs=* RG
-  \ call fzf#vim#grep(
-  \     "rg --column --line-number --no-heading --color=always --smart-case --with-filename --sort path " . <q-args>, 1,
-  \     <bang>0 ? fzf#vim#with_preview("up:60%")
-  \             : fzf#vim#with_preview("right:50%:hidden", "?"),
-  \     <bang>0)
-]])
-
--- GG as in Git grep, do not forget: CTRL-R CTRL-W for current word, same as CTRL-R=expand("<cword>")
-vim.cmd([[command! -bang -nargs=* GG
-  \ call fzf#vim#grep(
-  \   'git grep --line-number -- ' . <q-args>, 0,
-  \   fzf#vim#with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
-]])
-
 vim.g.sls_use_jinja_syntax = 1
 
 -- Add git to the blacklist, similar to diff, when showing a commit in fugitive
@@ -160,48 +136,17 @@ vim.o.clipboard = "unnamedplus,unnamed"
 vim.o.rtp = vim.o.rtp .. ",~/proj/neovim/build/runtime"
 
 vim.opt.completeopt = { 'menu', 'menuone', 'noselect' } -- nvim-cmp says to include this
-
-
--- OSC 52, in neovim nightly, but maybe slow?
--- vim.g.clipboard = {
--- 	name = 'OSC 52',
--- 	copy = {
--- 		['+'] = require('vim.ui.clipboard.osc52').copy,
--- 		['*'] = require('vim.ui.clipboard.osc52').copy,
--- 	},
--- 	paste = {
--- 		['+'] = require('vim.ui.clipboard.osc52').paste,
--- 		['*'] = require('vim.ui.clipboard.osc52').paste,
--- 	},
--- }
-
 -- }}}
 
 -- {{{ General key mappings
 -- Check for conflicts with `checkhealth which-key`
 vim.g.mapleader = " "
-vim.keymap.set('n', '<leader>fs', "<cmd>w<cr>", { desc = 'Save' })
-vim.keymap.set('n', '<leader>ff', "<cmd>Files %:p:h<cr>", { desc = 'File explore now' })
-vim.keymap.set('n', '<leader>fF', ':Files <c-r>=expand("%:p:h")<CR>', { desc = 'File explore path' })
-vim.keymap.set('n', '<leader>fg', ':GFiles <c-r>=expand("%:p:h")<CR><CR>', { desc = 'File (git) explore path now' })
-vim.keymap.set('n', '<leader>fG', ':GFiles <c-r>=expand("%:p:h")<CR>', { desc = 'File (git) explore path' })
-
-vim.keymap.set('n', '<leader>gs', '<cmd>Git<cr>', { desc = 'Git status' })
-
-vim.keymap.set('n', '<leader>bb', '<cmd>Buffers<cr>', { desc = 'List buffers' })
 vim.keymap.set('n', '<leader>bd', '<cmd>Bdelete<cr>', { desc = 'Delete buffer' })
 vim.keymap.set('n', '<leader>bD', '<cmd>Bwipeout<cr>', { desc = 'Delete buffer!' })
 vim.keymap.set('n', '<leader><tab>', '<C-^>', { desc = 'Previous buffer' })
 
-vim.keymap.set('n', '<leader>/', ':RG <c-r>=expand("<cword>")<cr><space>', { desc = 'rg cword' })
-vim.keymap.set('n', '<leader>?', ':RG <c-r>=expand("<cword>")<cr> <c-r>=expand("%:p:h")<cr>',
-    { desc = 'rg cword path' })
-vim.keymap.set('v', '<leader>/', '"vy:<c-w>RG "<c-r>v"<space>', { desc = 'rg selection (claiming "v)' })
-vim.keymap.set('v', '<leader>?', '"vy:<c-w>RG "<c-r>v" <c-r>=expand("%:p:h")<cr>',
-    { desc = 'rg selection path (claiming "v)' })
-vim.keymap.set('n', '<leader>g/', ':GG <c-r>=expand("<cword>")<cr><space>', { desc = 'git grep cword' })
-vim.keymap.set('n', '<leader>g?', ':GG <c-r>=expand("<cword>")<cr> <c-r>=expand("%:p:h")<cr>',
-    { desc = 'git grep cword path' })
+vim.keymap.set('n', '<leader>fs', "<cmd>w<cr>", { desc = 'Save' })
+vim.keymap.set('n', '<leader>gs', '<cmd>Git<cr>', { desc = 'Git status' })
 
 vim.keymap.set('n', '<leader>qq', "<cmd>q<cr>", { desc = 'Quit' })
 vim.keymap.set('n', '<leader>qa', "<cmd>qa<cr>", { desc = 'Quit all' })
@@ -266,8 +211,7 @@ vim.keymap.set('t', '<C-w>l', '<C-\\><C-n><C-w>l', { desc = 'Win go right' })
 vim.keymap.set('t', '<C-w>b', '<C-\\><C-n><C-w>b', { desc = 'Win go bottom' })
 vim.keymap.set('t', '<C-w>t', '<C-\\><C-n><C-w>t', { desc = 'Win go top' })
 vim.keymap.set('t', '<C-w>p', '<C-\\><C-n><C-w>p', { desc = 'Win go prev' })
--- Below interferes with FZF search results, where it is nice to just ESC out from the result list
---tnoremap <Esc> <C-\><C-n>
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Go to normal mode' })
 
 vim.keymap.set({ 'n', 'x' }, 'ga', '<Plug>(EasyAlign)', { desc = 'EasyAlign (vipga / gaip)', noremap = true })
 -- }}}
@@ -381,6 +325,9 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous dia
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostics' })
 vim.keymap.set('n', '<leader>dq', vim.diagnostic.setloclist, { desc = 'Open loc list with diagnostics' })
 
+vim.keymap.set('n', '<leader>dd', require('fzf-lua').diagnostics_document, { desc = 'View document diagnostics' })
+vim.keymap.set('n', '<leader>dD', require('fzf-lua').diagnostics_workspace, { desc = 'View all diagnostics' })
+
 vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('UserLspConfig', {}),
     callback = function(ev)
@@ -393,12 +340,13 @@ vim.api.nvim_create_autocmd('LspAttach', {
             vim.keymap.set(mode, l, r, opts)
         end
 
-        map('n', '<leader>gD', vim.lsp.buf.declaration, 'Go declaration')
-        map('n', '<leader>gd', vim.lsp.buf.definition, 'Go definition')
-        map('n', '<leader>gi', vim.lsp.buf.implementation, 'Go implemntation')
+        map('n', '<leader>gD', require('fzf-lua').lsp_declarations, 'Go declaration')
+        map('n', '<leader>gd', require('fzf-lua').lsp_definitions, 'Go definition')
+        map('n', '<leader>gi', require('fzf-lua').lsp_implementations, 'Go implemntation')
         map('n', '<leader>gn', vim.lsp.buf.rename, 'Rename')
-        map('n', '<leader>ga', vim.lsp.buf.code_action, 'Code action')
-        map('n', '<leader>gr', vim.lsp.buf.references, 'Go references')
+        map('n', '<leader>ga', require('fzf-lua').lsp_code_actions, 'Code action')
+        map('n', '<leader>gr', require('fzf-lua').lsp_references, 'Go references')
+        map('n', '<leader>gs', require('fzf-lua').lsp_live_workspace_symbols, 'Go ws symbol')
         map('n', 'K', vim.lsp.buf.hover, 'Hover')
         map('n', '<C-k>', vim.lsp.buf.signature_help, 'Signature help')
 
@@ -511,13 +459,6 @@ lspconfig.lua_ls.setup {
         }
     },
 }
-
--- But how to filter in the result in this one?
-require('lspfuzzy').setup({
-    fzf_preview = {
-        'right:+{2}-/2',
-    },
-})
 -- }}}
 
 -- {{{ Formatting
@@ -751,6 +692,76 @@ vim.api.nvim_create_autocmd('ModeChanged', {
 })
 --- }}}
 
+-- {{{ FZF
+require("fzf-lua").setup({})
+
+function GrepWithPath(opts)
+    local cmd = ''
+    if string.find(opts.name, 'RG') then
+        cmd = 'rg --column --line-number --no-heading --color=always --smart-case --max-columns=4096 --sort path -e'
+    elseif string.find(opts.name, 'GG') then
+        cmd = 'git grep --line-number --column --color=always'
+    end
+
+    local o = {
+        cmd = cmd,
+        search = opts.args,
+    }
+    if #opts.fargs > 1 and string.find(opts.fargs[#opts.fargs], '/') then
+            local search = table.concat(opts.fargs, ' ', 1, #opts.fargs - 1)
+        o = vim.tbl_extend('force', o, { cwd = opts.fargs[#opts.fargs], search = search })
+    end
+    require('fzf-lua').live_grep(o)
+end
+
+-- Call RG with optional path
+vim.api.nvim_create_user_command('RG', GrepWithPath, {
+    nargs = '+',
+    complete = 'dir',
+    desc = 'Call RG with optional path as last arg'
+})
+
+-- GG as in Git grep, do not forget: CTRL-R CTRL-W for current word, same as CTRL-R=expand("<cword>")
+vim.api.nvim_create_user_command('GG', GrepWithPath, {
+    nargs = '+',
+    complete = 'dir',
+    desc = 'Call git grep with optional path as last arg'
+})
+
+-- Files, like fzf-vim does it, with dir completes
+function Files(opts)
+    if string.find(opts.name, 'GFiles') then
+        require('fzf-lua').git_files({ cwd = opts.fargs[1] })
+    else
+        require('fzf-lua').files({ cwd = opts.fargs[1] })
+    end
+end
+
+vim.api.nvim_create_user_command('Files', Files, { nargs = '?', complete = 'dir' })
+vim.api.nvim_create_user_command('GFiles', Files, { nargs = '?', complete = 'dir' })
+
+vim.keymap.set('n', '<leader>/', ':RG <c-r>=expand("<cword>")<cr><space>', { desc = 'rg cword' })
+vim.keymap.set('n', '<leader>?', ':RG <c-r>=expand("<cword>")<cr> <c-r>=expand("%:p:h")<cr>',
+    { desc = 'rg cword path' })
+vim.keymap.set('v', '<leader>/', '"vy:<c-w>RG <c-r>v<space>', { desc = 'rg selection (claiming "v)' })
+vim.keymap.set('v', '<leader>?', '"vy:<c-w>RG <c-r>v <c-r>=expand("%:p:h")<cr>',
+    { desc = 'rg selection path (claiming "v)' })
+vim.keymap.set('n', '<leader>g/', ':GG <c-r>=expand("<cword>")<cr><space>', { desc = 'git grep cword' })
+vim.keymap.set('n', '<leader>g?', ':GG <c-r>=expand("<cword>")<cr> <c-r>=expand("%:p:h")<cr>',
+    { desc = 'git grep cword path' })
+vim.keymap.set('v', '<leader>g/', '"vy:<c-w>GG <c-r>v<space>', { desc = 'git grep selection (claiming "v)' })
+vim.keymap.set('v', '<leader>g?', '"vy:<c-w>GG <c-r>v <c-r>=expand("%:p:h")<cr>',
+    { desc = 'git grep selection path (claiming "v)' })
+
+vim.keymap.set('n', '<leader>ff', "<cmd>Files %:p:h<cr>", { desc = 'File explore now' })
+vim.keymap.set('n', '<leader>fF', ':Files <c-r>=expand("%:p:h")<CR>', { desc = 'File explore path' })
+vim.keymap.set('n', '<leader>fg', ':GFiles <c-r>=expand("%:p:h")<CR><CR>', { desc = 'File (git) explore path now' })
+vim.keymap.set('n', '<leader>fG', ':GFiles <c-r>=expand("%:p:h")<CR>', { desc = 'File (git) explore path' })
+
+vim.keymap.set('n', '<leader>bb', '<cmd>FzfLua buffers<cr>', { desc = 'List buffers' })
+
+-- }}}
+
 require('lualine').setup()
 
 require('smoothcursor').setup({
@@ -759,6 +770,7 @@ require('smoothcursor').setup({
         enable = true,
         head = { cursor = '', texthl = 'SmoothCursor', linehl = nil },
     },
+    disable_float_win = true,
     disabled_filetypes = {'fzf', 'gitmessengerpopup', ''},
     max_threshold = 120
 })
@@ -883,8 +895,6 @@ vim.keymap.set({ 'n', 'x', 'o' }, '<leader>st', function() require('flash').tree
     { desc = 'Flash Treesitter Selection' })
 vim.keymap.set('n', '<leader>tf', function() require('flash').toggle() end, { desc = 'Toggle Flash Search' })
 vim.keymap.set("c", "<c-s>", function() require("flash").toggle() end, {desc = "Toggle Flash Search"})
-
-require('ultimate-autopair').setup({})
 
 require('antonym').setup({})
 vim.keymap.set('n', '<leader>ta', '<cmd>AntonymWord<CR>', {desc = "Toggle antonym word"})
